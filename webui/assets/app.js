@@ -1241,6 +1241,23 @@ document.addEventListener('scroll', (ev) => {
   }
 }, true);
 
+// This is an app, not a browser page: no browser context menu (except the
+// cut/copy/paste one in text fields) and no reload/print/devtools keys.
+document.addEventListener('contextmenu', (ev) => {
+  const editable = ev.target.closest && ev.target.closest('input, textarea, [contenteditable="true"]');
+  if (!editable) ev.preventDefault();
+});
+document.addEventListener('keydown', (ev) => {
+  const k = ev.key;
+  const ctrl = ev.ctrlKey || ev.metaKey;
+  const blocked = k === 'F5' || k === 'F3' || k === 'F7' || (k === 'F12' && !BOOT.demo) ||
+    (ctrl && ['r', 'p', 'u', 'g', 'j', '+', '-', '=', '0'].includes(k.toLowerCase())) ||
+    (ctrl && ev.shiftKey && ['i', 'c', 'j'].includes(k.toLowerCase()) && !BOOT.demo) ||
+    (ev.altKey && (k === 'ArrowLeft' || k === 'ArrowRight'));
+  if (blocked) { ev.preventDefault(); ev.stopImmediatePropagation(); }
+}, true);
+window.addEventListener('wheel', (ev) => { if (ev.ctrlKey) ev.preventDefault(); }, { passive: false });
+
 document.addEventListener('keydown', (ev) => {
   const typing = ev.target.matches && ev.target.matches('input, textarea, select');
   if (ev.key === 'Escape') {

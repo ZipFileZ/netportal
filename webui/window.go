@@ -152,7 +152,9 @@ func newWebWindow(o windowOptions) (*webWindow, error) {
 		procDestroyWindow.Call(uintptr(w.hwnd))
 		return nil, errors.New("unable to start WebView2. Please make sure the Microsoft Edge WebView2 Runtime is installed")
 	}
-	if settings, err := w.chromium.GetSettings(); err == nil {
+	// go-webview2 reports any leftover GetLastError value as an error even
+	// when the COM call succeeded, so only the returned object is checked.
+	if settings, _ := w.chromium.GetSettings(); settings != nil {
 		settings.PutAreDevToolsEnabled(o.devTools)
 		settings.PutAreDefaultContextMenusEnabled(o.devTools)
 		settings.PutIsStatusBarEnabled(false)
