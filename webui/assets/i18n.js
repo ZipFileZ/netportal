@@ -99,7 +99,7 @@ const I18N = {
     'set.autoconnect': 'Автоподключение', 'set.autoconnect.hint': 'Подключаться к выбранному туннелю при запуске',
     'set.notify': 'Уведомления', 'set.notify.hint': 'Сообщать о подключении, отключении и ошибках',
     'set.privacy': 'Приватность',
-    'set.extip': 'Показывать внешний IP', 'set.extip.hint': 'После подключения запрашивает адрес у api.ipify.org',
+    'set.extip': 'Показывать внешний IP', 'set.extip.hint': 'После подключения запрашивает адрес и страну у 2ip (api.2ip.io)',
     'set.noTunnel': 'не выбран',
 
     'about.tagline': 'VPN-клиент на базе AmneziaWG с обфускацией трафика',
@@ -244,7 +244,7 @@ const I18N = {
     'set.autoconnect': 'Auto-connect', 'set.autoconnect.hint': 'Connect to the selected tunnel on start',
     'set.notify': 'Notifications', 'set.notify.hint': 'Tell me about connections, disconnections and errors',
     'set.privacy': 'Privacy',
-    'set.extip': 'Show external IP', 'set.extip.hint': 'After connecting, asks api.ipify.org for the address',
+    'set.extip': 'Show external IP', 'set.extip.hint': 'After connecting, asks 2ip (api.2ip.io) for the address and country',
     'set.noTunnel': 'none',
 
     'about.tagline': 'AmneziaWG-based VPN client with traffic obfuscation',

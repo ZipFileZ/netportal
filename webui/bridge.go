@@ -1124,13 +1124,13 @@ func (a *app) rpcExternalIP(w *webWindow, _ json.RawMessage) (any, error) {
 		return nil, codeErr("disabled", nil)
 	}
 	if a.demo {
-		return map[string]any{"ip": "203.0.113.24"}, nil
+		return ipInfo{IP: "203.0.113.24", City: "Amsterdam", Country: "Netherlands", Code: "NL"}, nil
 	}
-	ip, err := externalIP(context.Background())
+	info, err := externalIP(context.Background())
 	if err != nil {
 		return nil, codeErr("externalIPFailed", err)
 	}
-	return map[string]any{"ip": ip}, nil
+	return info, nil
 }
 
 func (a *app) rpcOpenURL(w *webWindow, raw json.RawMessage) (any, error) {

@@ -361,7 +361,13 @@ function extIPCell(name, st) {
   const e = S.extIP[name];
   if (!e || e.state === 'loading') return `<span class="muted">${esc(t('hero.extip.loading'))}</span>`;
   if (e.state === 'failed') return `<span class="muted">${esc(t('hero.extip.failed'))}</span>`;
-  return `<span class="mono selectable">${esc(e.ip)}</span>`;
+  const place = ipPlace(e);
+  return `<span class="ellipsis"><span class="mono selectable">${esc(e.ip)}</span>${place ? `<span class="muted"> · ${esc(place)}</span>` : ''}</span>`;
+}
+
+// "Amsterdam, NL" from the 2ip answer; empty when unknown.
+function ipPlace(e) {
+  return [e.city, e.code || e.country].filter(Boolean).join(', ');
 }
 
 function renderStats(name, st) {
@@ -1374,12 +1380,12 @@ function fetchExternalIP(name) {
   // Give routes a moment to settle so the request goes through the tunnel.
   setTimeout(() => {
     np.call('externalIP').then((r) => {
-      S.extIP[name] = { state: 'ok', ip: r.ip };
+      S.extIP[name] = { state: 'ok', ip: r.ip, city: r.city, country: r.country, code: r.code };
       const tn = tunnelByName(name);
       if (tn && tn.state === 'started' && S.lastConnectToast === name) {
         // Update the connect toast text if it is still showing.
         const x = S.toasts.find((q) => q.kind === 'ok' && q.title === t('toast.connected', name));
-        if (x) { x.text = t('toast.connected.ip', r.ip); renderToasts(); }
+        if (x) { const p = ipPlace(r); x.text = t('toast.connected.ip', r.ip + (p ? ' · ' + p : '')); renderToasts(); }
       }
       render();
     }).catch(() => { S.extIP[name] = { state: 'failed' }; render(); });
