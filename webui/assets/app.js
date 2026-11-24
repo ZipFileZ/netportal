@@ -650,6 +650,7 @@ function renderSettings() {
           ${setRow(t('set.autostart'), S.admin ? t('set.autostart.hint') : t('set.autostart.admin'), sw(S.autostart, 'autostart', t('set.autostart'), !S.admin || !S.autostartKnown))}
           ${setRow(t('set.minimized'), t('set.minimized.hint'), sw(s.startMinimized, 'setting', t('set.minimized')).replace('data-act="setting"', 'data-act="setting" data-field="startMinimized"'))}
           ${setRow(t('set.autoconnect'), t('set.autoconnect.hint'), `<div style="display:flex;align-items:center;gap:10px"><select class="select sm" data-key="autotn" data-change="autoTunnel" aria-label="${esc(t('set.autoconnect'))}" ${s.autoConnect ? '' : 'disabled'}>${tunnelOpts}</select>${sw(s.autoConnect, 'setting', t('set.autoconnect')).replace('data-act="setting"', 'data-act="setting" data-field="autoConnect"')}</div>`)}
+          ${setRow(t('set.switchWarn'), t('set.switchWarn.hint'), `<button class="switch" role="switch" aria-checked="${!s.skipSwitchWarning}" aria-label="${esc(t('set.switchWarn'))}" data-act="switchWarn"></button>`)}
           ${setRow(t('set.notify'), t('set.notify.hint'), sw(s.notifications, 'setting', t('set.notify')).replace('data-act="setting"', 'data-act="setting" data-field="notifications"'))}
         </div></div>
         <div class="group"><h2>${esc(t('set.privacy'))}</h2><div class="group-box">
@@ -723,6 +724,26 @@ function renderOverlay() {
     return `
       <div class="menu" role="listbox" style="top:${o.y}px;left:${o.x}px;width:${o.w}px;max-height:60vh;overflow:auto">
         ${S.tunnels.map((x) => `<button class="menu-item compact" role="option" aria-selected="${x.name === S.selected}" data-act="select" data-name="${esc(x.name)}"><span class="dot st st-${stateOf(x)}"></span><span class="tx"><b>${esc(x.name)}</b></span><span class="kbd">${esc(t('st.' + stateOf(x)))}</span></button>`).join('')}
+      </div>`;
+  }
+  if (o.kind === 'switch') {
+    const from = o.from.map((n) => (LANG === 'ru' ? `«${n}»` : `“${n}”`)).join(', ');
+    return `
+      <div class="scrim" data-act="closeOverlay" data-self="1">
+        <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="dlg-title">
+          <div class="dialog-body">
+            <span class="dialog-icon warn">${svg('warn', 18)}</span>
+            <div>
+              <h2 id="dlg-title">${esc(t('sw.title', o.to))}</h2>
+              <p>${esc(o.from.length === 1 ? t('sw.text.one', from, o.to) : t('sw.text.many', from, o.to))}</p>
+              <button class="inline-check" style="margin-top:12px" data-act="switchDontAsk"><span class="check sm" role="checkbox" aria-checked="${o.dontAsk}">${svgCheck(10)}</span>${esc(t('sw.dontAsk'))}</button>
+            </div>
+          </div>
+          <div class="dialog-foot">
+            <button class="btn" data-act="closeOverlay">${esc(t('cancel'))}</button>
+            <button class="btn primary" data-act="confirmSwitch" data-key="dlg-ok">${esc(t('sw.confirm'))}</button>
+          </div>
+        </div>
       </div>`;
   }
   if (o.kind === 'delete' || o.kind === 'leave') {
@@ -1062,6 +1083,7 @@ function renderTray() {
         <button class="btn primary" data-act="trayOpen">${esc(t('tray.open'))}</button>
         ${S.admin ? `<button class="btn" data-act="quit">${esc(t('tray.exit'))}</button>` : ''}
       </div>
+      ${renderOverlay()}
     </div>`;
 }
 
@@ -1077,6 +1099,21 @@ function toggleTunnel(name) {
   const st = stateOf(tn);
   if (st === 'disconnecting') return;
   const stop = st === 'connected' || st === 'connecting';
+  if (stop || S.settings.skipSwitchWarning) { applyToggle(name, stop); return; }
+  // Starting a tunnel stops every active one whose routes intersect with it;
+  // warn before the connection drops.
+  np.call('conflicts', { name }).then((r) => {
+    const names = (r && r.names) || [];
+    if (!names.length) { applyToggle(name, false); return; }
+    S.overlay = { kind: 'switch', to: name, from: names, dontAsk: false };
+    render();
+    setTimeout(() => { const c = $('[data-key="dlg-ok"]'); if (c) c.focus(); }, 0);
+  }).catch(() => applyToggle(name, false));
+}
+
+function applyToggle(name, stop) {
+  const tn = tunnelByName(name);
+  if (!tn) return;
   // Optimistic state so the switch reacts immediately.
   tn.state = stop ? 'stopping' : 'starting';
   tn.error = '';
@@ -1169,6 +1206,14 @@ const ACTIONS = {
   deleteSelected: () => S.selected && confirmDelete([S.selected]),
   deleteOne: (el) => confirmDelete([el.dataset.name]),
   confirmDelete: () => doDelete(S.overlay.names),
+  switchWarn: () => setSettings({ skipSwitchWarning: !S.settings.skipSwitchWarning }),
+  switchDontAsk: () => { S.overlay.dontAsk = !S.overlay.dontAsk; render(); },
+  confirmSwitch: () => {
+    const o = S.overlay;
+    S.overlay = null;
+    if (o.dontAsk) setSettings({ skipSwitchWarning: true });
+    applyToggle(o.to, false);
+  },
   confirmLeave: () => {
     const then = S.overlay && S.overlay.then;
     closeEditor(true);

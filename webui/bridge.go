@@ -74,6 +74,7 @@ func init() {
 		"stats":         {fn: (*app).rpcStats},
 		"start":         {fn: (*app).rpcStart},
 		"stop":          {fn: (*app).rpcStop},
+		"conflicts":     {fn: (*app).rpcConflicts},
 		"remove":        {admin: true, fn: (*app).rpcRemove},
 		"getConfig":     {admin: true, fn: (*app).rpcGetConfig},
 		"newConfig":     {admin: true, fn: (*app).rpcNewConfig},
@@ -488,6 +489,44 @@ func (a *app) rpcStart(w *webWindow, raw json.RawMessage) (any, error) {
 		return nil, codeErr("startFailed", err)
 	}
 	return nil, nil
+}
+
+// conflictingTunnels lists the active tunnels that starting name would stop.
+// The manager stops every running tunnel whose addresses or routes intersect
+// with the new one (see ManagerService.Start); others keep running.
+func (a *app) conflictingTunnels(name string) []string {
+	cfg, err := a.be.StoredConfig(name)
+	if err != nil {
+		return nil
+	}
+	names, err := a.be.TunnelNames()
+	if err != nil {
+		return nil
+	}
+	var out []string
+	for _, n := range names {
+		if n == name {
+			continue
+		}
+		st, err := a.be.State(n)
+		if err != nil || (st != manager.TunnelStarted && st != manager.TunnelStarting) {
+			continue
+		}
+		other, err := a.be.StoredConfig(n)
+		if err != nil || !cfg.IntersectsWith(&other) {
+			continue
+		}
+		out = append(out, n)
+	}
+	return out
+}
+
+func (a *app) rpcConflicts(w *webWindow, raw json.RawMessage) (any, error) {
+	var args nameArg
+	if err := decodeArgs(raw, &args); err != nil {
+		return nil, err
+	}
+	return map[string]any{"names": a.conflictingTunnels(args.Name)}, nil
 }
 
 func (a *app) rpcStop(w *webWindow, raw json.RawMessage) (any, error) {

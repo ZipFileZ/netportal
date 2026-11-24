@@ -148,11 +148,14 @@ func (d *demoBackend) setState(name string, state manager.TunnelState) {
 }
 
 func (d *demoBackend) Start(name string) error {
-	// Only one tunnel at a time, like the real manager.
+	// Like the real manager: stop running tunnels whose routes intersect.
 	names, _ := d.TunnelNames()
+	cfg, _ := d.StoredConfig(name)
 	for _, other := range names {
 		if s, _ := d.State(other); other != name && (s == manager.TunnelStarted || s == manager.TunnelStarting) {
-			d.setState(other, manager.TunnelStopped)
+			if oc, err := d.StoredConfig(other); err == nil && cfg.IntersectsWith(&oc) {
+				d.setState(other, manager.TunnelStopped)
+			}
 		}
 	}
 	d.setState(name, manager.TunnelStarting)

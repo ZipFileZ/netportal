@@ -26,6 +26,9 @@ type Settings struct {
 	Notifications     bool   `json:"notifications"`
 	ExternalIP        bool   `json:"externalIP"`
 
+	// Don't ask before connecting a tunnel that will disconnect another one.
+	SkipSwitchWarning bool `json:"skipSwitchWarning"`
+
 	// Set before an update so the restarted UI opens its window instead of
 	// staying in the tray.
 	ShowOnNextStart bool `json:"showOnNextStart,omitempty"`

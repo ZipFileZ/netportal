@@ -81,6 +81,12 @@ const I18N = {
     'del.text': 'Это действие нельзя отменить. Конфигурация и ключи будут удалены с этого компьютера.',
     'del.confirm': 'Удалить', 'cancel': 'Отмена',
 
+    'sw.title': 'Переключиться на «{0}»?',
+    'sw.text.one': 'Сейчас подключён туннель {0} — он будет отключён. Пока подключается «{1}», соединение на несколько секунд прервётся: загрузки и звонки могут оборваться.',
+    'sw.text.many': 'Сейчас подключены туннели {0} — они будут отключены. Пока подключается «{1}», соединение на несколько секунд прервётся: загрузки и звонки могут оборваться.',
+    'sw.dontAsk': 'Больше не спрашивать', 'sw.confirm': 'Переключиться',
+    'set.switchWarn': 'Предупреждать при переключении', 'set.switchWarn.hint': 'Спрашивать перед подключением туннеля, который отключит текущий',
+
     'drop.title': 'Отпустите, чтобы импортировать', 'drop.sub': '.conf и .zip',
 
     'log.title': 'Журнал', 'log.sub': 'Записей: {0}', 'log.copy': 'Копировать', 'log.save': 'Сохранить в файл…',
@@ -225,6 +231,12 @@ const I18N = {
     'del.title.one': 'Delete tunnel “{0}”?', 'del.title.many': 'Delete {0}?',
     'del.text': 'This cannot be undone. The configuration and keys will be removed from this computer.',
     'del.confirm': 'Delete', 'cancel': 'Cancel',
+
+    'sw.title': 'Switch to “{0}”?',
+    'sw.text.one': 'Tunnel {0} is connected and will be disconnected. While “{1}” connects, the connection drops for a few seconds: downloads and calls may be interrupted.',
+    'sw.text.many': 'Tunnels {0} are connected and will be disconnected. While “{1}” connects, the connection drops for a few seconds: downloads and calls may be interrupted.',
+    'sw.dontAsk': 'Don’t ask again', 'sw.confirm': 'Switch',
+    'set.switchWarn': 'Warn when switching', 'set.switchWarn.hint': 'Ask before connecting a tunnel that disconnects the current one',
 
     'drop.title': 'Release to import', 'drop.sub': '.conf and .zip',
 
