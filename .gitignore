@@ -16,3 +16,7 @@
 *.syso
 .idea
 *.ico
+
+# NET PORTAL release output and signing keys
+/release
+*.key

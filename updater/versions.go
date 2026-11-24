@@ -54,8 +54,8 @@ func versionNewerThanUs(candidate string) (bool, error) {
 }
 
 func findCandidate(candidates fileList) (*UpdateFound, error) {
-	prefix := fmt.Sprintf(msiArchPrefix, version.Arch())
-	suffix := msiSuffix
+	prefix := fmt.Sprintf(assetArchPrefix, version.Arch())
+	suffix := assetSuffix
 	for name, hash := range candidates {
 		if strings.HasPrefix(name, prefix) && strings.HasSuffix(name, suffix) {
 			version := strings.TrimSuffix(strings.TrimPrefix(name, prefix), suffix)
@@ -67,7 +67,7 @@ func findCandidate(candidates fileList) (*UpdateFound, error) {
 				return nil, err
 			}
 			if newer {
-				return &UpdateFound{name, hash}, nil
+				return &UpdateFound{name: name, version: version, hash: hash}, nil
 			}
 		}
 	}

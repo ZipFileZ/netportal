@@ -24,7 +24,7 @@ import (
 	"github.com/amnezia-vpn/amneziawg-windows-client/l18n"
 	"github.com/amnezia-vpn/amneziawg-windows-client/manager"
 	"github.com/amnezia-vpn/amneziawg-windows-client/ringlogger"
-	"github.com/amnezia-vpn/amneziawg-windows-client/ui"
+	"github.com/amnezia-vpn/amneziawg-windows-client/webui"
 	"github.com/amnezia-vpn/amneziawg-windows-client/updater"
 )
 
@@ -157,7 +157,7 @@ func main() {
 	checkForWow64()
 
 	if len(os.Args) <= 1 {
-		if ui.RaiseUI() {
+		if webui.RaiseUI() {
 			return
 		}
 		checkForAdminGroup()
@@ -172,7 +172,7 @@ func main() {
 		if len(os.Args) != 2 {
 			usage()
 		}
-		go ui.WaitForRaiseUIThenQuit()
+		go webui.WaitForRaiseUIThenQuit()
 		err := manager.InstallManager()
 		if err != nil {
 			if err == manager.ErrManagerAlreadyRunning {
@@ -263,8 +263,21 @@ func main() {
 			fatal(err)
 		}
 		manager.InitializeIPCClient(readPipe, writePipe, eventPipe)
-		ui.IsAdmin = isAdmin
-		ui.RunUI()
+		webui.IsAdmin = isAdmin
+		webui.RunUI()
+		return
+	case "/restartmanager":
+		if len(os.Args) != 2 {
+			usage()
+		}
+		if err := manager.RestartManager(); err != nil {
+			fatal(err)
+		}
+		return
+	case "/uidemo":
+		// Preview the interface with simulated tunnels. Does not install,
+		// start or contact any service.
+		webui.RunDemo(os.Args[2:]...)
 		return
 	case "/dumplog":
 		if len(os.Args) != 2 && len(os.Args) != 3 {

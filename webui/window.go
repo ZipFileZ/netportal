@@ -1,0 +1,275 @@
+/* SPDX-License-Identifier: MIT
+ *
+ * Copyright (C) 2019-2022 WireGuard LLC. All Rights Reserved.
+ */
+
+package webui
+
+import (
+	"errors"
+	"os"
+	"path/filepath"
+	"sync"
+	"unsafe"
+
+	"github.com/jchv/go-webview2/pkg/edge"
+	"golang.org/x/sys/windows"
+)
+
+const (
+	manageWindowClass = "NetPortalManageWindow"
+	trayPopupClass    = "NetPortalTrayPopup"
+	logoIconID        = 7
+)
+
+// webWindow is a top-level Win32 window hosting a WebView2 control.
+type webWindow struct {
+	hwnd     windows.HWND
+	chromium *edge.Chromium
+
+	minW, minH int32 // in DIPs, 0 for none
+
+	onMessage    func(string)
+	onClose      func() // nil means destroy
+	onDeactivate func()
+	onWndProc    func(m uint32, w, l uintptr) (uintptr, bool)
+}
+
+var (
+	windowsByHwnd   = map[windows.HWND]*webWindow{}
+	wndProcCallback = windows.NewCallback(wndProc)
+	registerOnce    sync.Map
+
+	dispatchMu    sync.Mutex
+	dispatchQueue []func()
+	dispatchHwnd  windows.HWND
+)
+
+// dispatch runs f on the UI thread. WebView2 must only be called from there.
+func dispatch(f func()) {
+	dispatchMu.Lock()
+	dispatchQueue = append(dispatchQueue, f)
+	h := dispatchHwnd
+	dispatchMu.Unlock()
+	if h != 0 {
+		postMessage(h, wmAppDispatch, 0, 0)
+	}
+}
+
+func drainDispatch() {
+	dispatchMu.Lock()
+	q := dispatchQueue
+	dispatchQueue = nil
+	dispatchMu.Unlock()
+	for _, f := range q {
+		f()
+	}
+}
+
+func registerClass(name string, icon windows.Handle) error {
+	if _, done := registerOnce.Load(name); done {
+		return nil
+	}
+	inst := moduleHandle()
+	cursor, _, _ := procLoadCursorW.Call(0, 32512 /* IDC_ARROW */)
+	wc := wndClassEx{
+		Size:      uint32(unsafe.Sizeof(wndClassEx{})),
+		WndProc:   wndProcCallback,
+		Instance:  inst,
+		Icon:      icon,
+		IconSm:    icon,
+		Cursor:    windows.Handle(cursor),
+		ClassName: windows.StringToUTF16Ptr(name),
+	}
+	if r, _, err := procRegisterClassExW.Call(uintptr(unsafe.Pointer(&wc))); r == 0 {
+		return err
+	}
+	registerOnce.Store(name, true)
+	return nil
+}
+
+func webViewDataPath() string {
+	base, err := windows.KnownFolderPath(windows.FOLDERID_LocalAppData, windows.KF_FLAG_CREATE)
+	if err != nil {
+		base = os.TempDir()
+	}
+	p := filepath.Join(base, "NetPortal", "WebView2")
+	os.MkdirAll(p, 0o700)
+	return p
+}
+
+type windowOptions struct {
+	class      string
+	title      string
+	style      uint32
+	exStyle    uint32
+	x, y       int32 // in pixels; cwUseDefault if not set
+	w, h       int32 // in DIPs
+	minW, minH int32
+	background edge.COREWEBVIEW2_COLOR
+	devTools   bool
+}
+
+func newWebWindow(o windowOptions) (*webWindow, error) {
+	icon := loadIcon(logoIconID, 32)
+	if err := registerClass(o.class, icon); err != nil {
+		return nil, err
+	}
+	inst := moduleHandle()
+	dpi := dpiForWindow(0)
+	x, y := uintptr(cwUseDefault), uintptr(cwUseDefault)
+	if o.x != 0 || o.y != 0 {
+		x, y = uintptr(o.x), uintptr(o.y)
+	}
+	h, _, err := procCreateWindowExW.Call(
+		uintptr(o.exStyle),
+		uintptr(unsafe.Pointer(windows.StringToUTF16Ptr(o.class))),
+		uintptr(unsafe.Pointer(windows.StringToUTF16Ptr(o.title))),
+		uintptr(o.style|wsClipChildren),
+		x, y,
+		uintptr(scale(o.w, dpi)), uintptr(scale(o.h, dpi)),
+		0, 0, uintptr(inst), 0)
+	if h == 0 {
+		return nil, err
+	}
+	w := &webWindow{hwnd: windows.HWND(h), minW: o.minW, minH: o.minH}
+	windowsByHwnd[w.hwnd] = w
+	if dispatchHwnd == 0 {
+		dispatchMu.Lock()
+		dispatchHwnd = w.hwnd
+		dispatchMu.Unlock()
+	}
+
+	w.chromium = edge.NewChromium()
+	w.chromium.DataPath = webViewDataPath()
+	w.chromium.SetPermission(edge.CoreWebView2PermissionKindClipboardRead, edge.CoreWebView2PermissionStateAllow)
+	w.chromium.MessageCallback = func(s string) {
+		if w.onMessage != nil {
+			w.onMessage(s)
+		}
+	}
+	if !w.chromium.Embed(uintptr(w.hwnd)) {
+		procDestroyWindow.Call(uintptr(w.hwnd))
+		return nil, errors.New("unable to start WebView2. Please make sure the Microsoft Edge WebView2 Runtime is installed")
+	}
+	if settings, err := w.chromium.GetSettings(); err == nil {
+		settings.PutAreDevToolsEnabled(o.devTools)
+		settings.PutAreDefaultContextMenusEnabled(o.devTools)
+		settings.PutIsStatusBarEnabled(false)
+		settings.PutIsZoomControlEnabled(false)
+		settings.PutIsPinchZoomEnabled(false)
+		settings.PutIsSwipeNavigationEnabled(false)
+		settings.PutAreBrowserAcceleratorKeysEnabled(o.devTools)
+		settings.PutAreDefaultScriptDialogsEnabled(false)
+	}
+	if c2 := w.chromium.GetController().GetICoreWebView2Controller2(); c2 != nil {
+		c2.PutDefaultBackgroundColor(o.background)
+	}
+	w.chromium.Resize()
+	w.chromium.Hide() // the window starts hidden; show() makes both visible
+	return w, nil
+}
+
+func (w *webWindow) eval(js string) {
+	if w != nil && w.chromium != nil {
+		w.chromium.Eval(js)
+	}
+}
+
+func (w *webWindow) show() {
+	if isIconic(w.hwnd) {
+		showWindow(w.hwnd, swRestore)
+	} else {
+		showWindow(w.hwnd, swShow)
+	}
+	w.chromium.Show()
+	procSetForegroundWindow.Call(uintptr(w.hwnd))
+	w.chromium.Focus()
+}
+
+// hide also marks the WebView as invisible so the page sees
+// document.visibilityState == "hidden" and stops its timers' work.
+func (w *webWindow) hide() {
+	showWindow(w.hwnd, swHide)
+	w.chromium.Hide()
+}
+
+func (w *webWindow) visible() bool { return isWindowVisible(w.hwnd) && !isIconic(w.hwnd) }
+
+// setTitleBarColors makes the native caption match the page so the title bar
+// blends with the sidebar, like in the design.
+func (w *webWindow) setTitleBarColors(dark bool, caption, text uint32) {
+	v := uint32(0)
+	if dark {
+		v = 1
+	}
+	setDwmInt(w.hwnd, dwmwaUseImmersiveDarkMode, v)
+	setDwmInt(w.hwnd, dwmwaCaptionColor, caption)
+	setDwmInt(w.hwnd, dwmwaTextColor, text)
+}
+
+func wndProc(hwnd windows.HWND, m uint32, wp, lp uintptr) uintptr {
+	w := windowsByHwnd[hwnd]
+	if w != nil && w.onWndProc != nil {
+		if r, handled := w.onWndProc(m, wp, lp); handled {
+			return r
+		}
+	}
+	switch m {
+	case wmAppDispatch:
+		drainDispatch()
+		return 0
+	case wmSize:
+		if w != nil && w.chromium != nil {
+			w.chromium.Resize()
+		}
+	case wmMove, wmMoving:
+		if w != nil && w.chromium != nil {
+			w.chromium.NotifyParentWindowPositionChanged()
+		}
+	case wmSetFocus:
+		if w != nil && w.chromium != nil {
+			w.chromium.Focus()
+		}
+	case wmActivate:
+		if w != nil && wp&0xffff == waInactive && w.onDeactivate != nil {
+			w.onDeactivate()
+		}
+	case wmGetMinMaxInfo:
+		if w != nil && (w.minW != 0 || w.minH != 0) {
+			dpi := dpiForWindow(hwnd)
+			mmi := (*minMaxInfo)(unsafe.Pointer(lp))
+			mmi.MinTrackSize = point{scale(w.minW, dpi), scale(w.minH, dpi)}
+			return 0
+		}
+	case wmDpiChanged:
+		r := (*rect)(unsafe.Pointer(lp))
+		setWindowPos(hwnd, 0, r.Left, r.Top, r.Right-r.Left, r.Bottom-r.Top, swpNoZOrder|swpNoActivate)
+		return 0
+	case wmClose:
+		if w != nil && w.onClose != nil {
+			w.onClose()
+			return 0
+		}
+	case wmDestroy:
+		delete(windowsByHwnd, hwnd)
+		if hwnd == dispatchHwnd {
+			procPostQuitMessage.Call(0)
+		}
+		return 0
+	}
+	r, _, _ := procDefWindowProcW.Call(uintptr(hwnd), uintptr(m), wp, lp)
+	return r
+}
+
+func runMessageLoop() {
+	var m msg
+	for {
+		r, _, _ := procGetMessageW.Call(uintptr(unsafe.Pointer(&m)), 0, 0, 0)
+		if int32(r) <= 0 {
+			return
+		}
+		procTranslateMessage.Call(uintptr(unsafe.Pointer(&m)))
+		procDispatchMessageW.Call(uintptr(unsafe.Pointer(&m)))
+	}
+}

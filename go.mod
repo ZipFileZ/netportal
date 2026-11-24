@@ -3,12 +3,19 @@ module github.com/amnezia-vpn/amneziawg-windows-client
 go 1.25.0
 
 require (
+	github.com/jchv/go-webview2 v0.0.0-20260205173254-56598839c808
 	github.com/lxn/walk v0.0.0-20210112085537-c389da54e794
 	github.com/lxn/win v0.0.0-20210218163916-a377121e959e
+	github.com/makiuchi-d/gozxing v0.1.1
 	golang.org/x/crypto v0.42.0
 	golang.org/x/sys v0.36.0
 	golang.org/x/text v0.29.0
 	golang.zx2c4.com/wintun v0.0.0-20230126152724-0fa3db229ce2
+)
+
+require (
+	github.com/jchv/go-winloader v0.0.0-20250406163304-c1995be93bd1 // indirect
+	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
 )
 
 require (
@@ -24,3 +31,6 @@ replace (
 	github.com/lxn/walk => golang.zx2c4.com/wireguard/windows v0.0.0-20210121140954-e7fc19d483bd
 	github.com/lxn/win => golang.zx2c4.com/wireguard/windows v0.0.0-20210224134948-620c54ef6199
 )
+
+replace github.com/amnezia-vpn/amneziawg-windows/v3 => ./third_party/amneziawg-windows
+replace github.com/amnezia-vpn/amneziawg-go/v3 => ./third_party/amneziawg-go

@@ -22,5 +22,5 @@ func Arch() string {
 }
 
 func UserAgent() string {
-	return fmt.Sprintf("AmneziaWG/%s (%s; %s)", Number, OsName(), Arch())
+	return fmt.Sprintf("NetPortal/%s (%s; %s)", Number, OsName(), Arch())
 }

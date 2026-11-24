@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Мини-попап трея</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div role="dialog" aria-label="NET PORTAL" style="width: 360px; height: 560px; box-sizing: border-box; display: flex; flex-direction: column; background: {{c.bg}}; color: {{c.text}}; font-family: 'Segoe UI Variable Text', 'Segoe UI Variable', Inter, system-ui, sans-serif; font-size: 13px; line-height: 20px; border: 1px solid {{c.frame}}; border-radius: 12px; overflow: hidden">
+
+<div style="height: 48px; flex: none; display: flex; align-items: center; gap: 10px; padding: 0 8px 0 16px">
+<svg aria-hidden="true" width="18" height="18" viewBox="0 0 16 16"><rect width="16" height="16" rx="4" fill="{{c.accentBtn}}"></rect><path d="M3.5 9.6l2.2-3.2 2.3 3.2 2.3-3.2 2.2 3.2" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+<span style="flex: 1; font-weight: 700; letter-spacing: 0.04em">NET PORTAL</span>
+<button aria-label="Настройки" style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border: 0; border-radius: 6px; background: transparent; color: {{c.text2}}; padding: 0"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M2.5 4.5h6M11.5 4.5h2M2.5 11.5h2M7.5 11.5h6M10 3v3M6 10v3"></path></svg></button>
+</div>
+
+<div style="margin: 0 12px; padding: 14px; border-radius: 10px; background: {{c.card}}; border: 1px solid {{c.border}}; display: flex; flex-direction: column; gap: 12px">
+<div style="display: flex; align-items: center; gap: 12px">
+<span style="position: relative; width: 40px; height: 40px; flex: none; border-radius: 50%; background: {{st.soft}}; color: {{st.color}}; display: flex; align-items: center; justify-content: center">
+<svg aria-hidden="true" width="20" height="20" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 1.5l5.5 2v4.2c0 3.2-2.3 5.7-5.5 6.8-3.2-1.1-5.5-3.6-5.5-6.8V3.5z"></path></svg>
+<sc-if value="{{busy}}" hint-placeholder-val="{{ false }}"><svg aria-hidden="true" width="48" height="48" viewBox="0 0 48 48" style="position: absolute; left: -4px; top: -4px"><circle cx="24" cy="24" r="22.5" fill="none" stroke="{{st.color}}" stroke-width="2" stroke-linecap="round" stroke-dasharray="30 112"></circle></svg></sc-if>
+</span>
+<div style="flex: 1; min-width: 0">
+<div style="font-size: 14px; line-height: 20px; font-weight: 600; color: {{st.color}}">{{st.label}}</div>
+<div style="font-size: 12px; line-height: 16px; color: {{c.text2}}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{st.sub}}</div>
+</div>
+<button role="switch" aria-checked="{{on}}" aria-label="Подключение к {{active}}" onClick="{{toggle}}" style="position: relative; width: 48px; height: 26px; flex: none; padding: 0; border-radius: 999px; box-sizing: border-box; border: 1px solid {{trackBorder}}; background: {{trackBg}}"><span style="position: absolute; top: 4px; left: {{knobX}}; width: 16px; height: 16px; border-radius: 50%; background: {{knob}}"></span></button>
+</div>
+<div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; padding-top: 10px; border-top: 1px solid {{c.borderSoft}}; font-size: 12px; line-height: 16px; font-variant-numeric: tabular-nums">
+<div><div style="font-size: 11px; color: {{c.text3}}">Загрузка</div><div style="font-weight: 600">{{rx}}</div></div>
+<div><div style="font-size: 11px; color: {{c.text3}}">Отдача</div><div style="font-weight: 600">{{tx}}</div></div>
+<div><div style="font-size: 11px; color: {{c.text3}}">Время</div><div style="font-weight: 600">{{dur}}</div></div>
+</div>
+</div>
+
+<div style="padding: 14px 16px 6px; font-size: 11px; line-height: 16px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: {{c.text3}}">Туннели</div>
+<div role="radiogroup" aria-label="Туннели" style="flex: 1; min-height: 0; overflow: hidden; padding: 0 8px; display: flex; flex-direction: column; gap: 2px">
+<sc-for list="{{items}}" as="t" hint-placeholder-count="6">
+<button role="radio" aria-checked="{{t.on}}" onClick="{{t.pick}}" style="height: 38px; flex: none; display: flex; align-items: center; gap: 10px; padding: 0 10px; border: 0; border-radius: 6px; background: {{t.bg}}; color: {{c.text}}; font: inherit; text-align: left">
+<span style="width: 8px; height: 8px; border-radius: 50%; background: {{t.dot}}"></span>
+<span style="flex: 1; font-weight: {{t.weight}}">{{t.id}}</span>
+<span style="font-size: 11px; color: {{t.subColor}}">{{t.sub}}</span>
+</button>
+</sc-for>
+</div>
+
+<div style="flex: none; display: flex; gap: 8px; padding: 12px; border-top: 1px solid {{c.borderSoft}}; background: {{c.foot}}">
+<a href="Main.dc.html" style="flex: 1; height: 34px; display: flex; align-items: center; justify-content: center; border-radius: 6px; background: {{c.accentBtn}}; color: #fff; text-decoration: none; font-size: 13px; font-weight: 600">Открыть NET PORTAL</a>
+<button style="height: 34px; padding: 0 14px; border-radius: 6px; border: 1px solid {{c.border}}; background: {{c.card}}; color: {{c.text}}; font: inherit; font-size: 13px">Выход</button>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["dark","light"],"default":"dark"},"status":{"editor":"enum","options":["idle","connecting","connected"],"default":"connected"},"$preview":{"width":360,"height":560}}'>
+class Component extends DCLogic {
+  componentWillUnmount() { clearTimeout(this._t); }
+  s(k, d) { const st = this.state || {}; return st[k] !== undefined ? st[k] : d; }
+  connect(id) {
+    clearTimeout(this._t);
+    this.setState({ active: id, status: 'connecting' });
+    this._t = setTimeout(() => this.setState({ status: 'connected' }), 1500);
+  }
+  renderVals() {
+    const p = this.props;
+    const theme = p.theme === 'light' ? 'light' : 'dark';
+    const T = {
+      dark: { bg: '#24272C', card: '#2D3036', foot: '#1E2024', border: '#3C3F47', borderSoft: '#31343A', frame: '#474A52', text: '#F2F3F5', text2: '#B6BAC2', text3: '#9EA3AC', accentBtn: '#0077D9', accentSoft: 'rgba(0,140,255,0.15)', sel: '#34373E',
+        green: '#3DD68C', greenSoft: 'rgba(61,214,140,0.13)', yellow: '#F5B544', yellowSoft: 'rgba(245,181,68,0.13)', gray: '#9EA3AC', graySoft: 'rgba(158,163,172,0.12)', offTrack: '#686C75' },
+      light: { bg: '#F6F6F6', card: '#FFFFFF', foot: '#EEEEEE', border: '#E1E2E2', borderSoft: '#ECECEC', frame: '#CECECD', text: '#212529', text2: '#3E4245', text3: '#6B6B6A', accentBtn: '#0077D9', accentSoft: 'rgba(0,140,255,0.10)', sel: '#ECECEC',
+        green: '#0F8A48', greenSoft: 'rgba(15,138,72,0.10)', yellow: '#A36200', yellowSoft: 'rgba(214,140,0,0.12)', gray: '#6B6B6A', graySoft: 'rgba(107,107,106,0.10)', offTrack: '#8C8C8B' }
+    };
+    const c = T[theme];
+    const status = this.s('status', p.status || 'connected');
+    const active = this.s('active', 'ams-01');
+    const busy = status === 'connecting';
+    const live = status === 'connected';
+    const META = {
+      idle: { label: 'Отключено', sub: 'Последний: ' + active, color: c.gray, soft: c.graySoft },
+      connecting: { label: 'Подключение…', sub: active + ' · handshake, попытка 2', color: c.yellow, soft: c.yellowSoft },
+      connected: { label: 'Подключено', sub: active + ' · 203.0.113.24', color: c.green, soft: c.greenSoft }
+    };
+    const st = META[status] || META.idle;
+    const on = status !== 'idle';
+    const ids = ['ams-01', 'fra-home', 'office-msk', 'hel-backup', 'nyc-stream', 'tokyo-02'];
+    const items = ids.map((id) => {
+      const a = id === active;
+      const ts = a ? status : 'idle';
+      return {
+        id, on: a ? 'true' : 'false', bg: a ? c.sel : 'transparent', weight: a ? 600 : 400,
+        dot: ts === 'connected' ? c.green : ts === 'connecting' ? c.yellow : c.gray,
+        sub: ts === 'connected' ? 'активен' : ts === 'connecting' ? 'подключение…' : '',
+        subColor: ts === 'connected' ? c.green : c.yellow,
+        pick: () => this.connect(id)
+      };
+    });
+    return {
+      c, st, busy, active,
+      on: on ? 'true' : 'false', trackBg: on ? (busy ? c.yellow : c.accentBtn) : 'transparent', trackBorder: on ? (busy ? c.yellow : c.accentBtn) : c.offTrack,
+      knob: on ? '#FFFFFF' : c.offTrack, knobX: on ? '27px' : '4px',
+      toggle: () => { if (on) { clearTimeout(this._t); this.setState({ status: 'idle' }); } else { this.connect(active); } },
+      rx: live ? '48,2 Мбит/с' : '—', tx: live ? '6,1 Мбит/с' : '—', dur: live ? '00:42:17' : '—',
+      items
+    };
+  }
+}
+</script>
+</body>
+</html>

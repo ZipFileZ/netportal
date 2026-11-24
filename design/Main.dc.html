@@ -1,0 +1,785 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>NET PORTAL — окно приложения</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div style="position: relative; width: {{rootW}}; height: {{rootH}}; box-sizing: border-box; display: flex; flex-direction: column; background: {{c.win}}; color: {{c.text}}; font-family: 'Segoe UI Variable Text', 'Segoe UI Variable', Inter, system-ui, sans-serif; font-size: 13px; line-height: 20px; border: 1px solid {{c.frame}}; border-radius: 8px; overflow: hidden">
+
+<!-- Title bar -->
+<div style="height: 40px; flex: none; display: flex; align-items: center; background: {{c.win}}">
+<div style="flex: 1; display: flex; align-items: center; gap: 10px; padding-left: 14px; min-width: 0">
+<svg aria-hidden="true" width="16" height="16" viewBox="0 0 16 16"><rect width="16" height="16" rx="4" fill="{{c.accentBtn}}"></rect><path d="M3.5 9.6l2.2-3.2 2.3 3.2 2.3-3.2 2.2 3.2" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+<span style="font-size: 12px; color: {{c.text2}}; font-weight: 600; letter-spacing: 0.04em">NET PORTAL</span>
+</div>
+<button aria-label="Свернуть" style="width: 46px; height: 40px; border: 0; padding: 0; background: transparent; color: {{c.text2}}; display: flex; align-items: center; justify-content: center"><svg aria-hidden="true" width="10" height="10" viewBox="0 0 10 10"><path d="M0 5h10" stroke="currentColor" stroke-width="1"></path></svg></button>
+<button aria-label="Развернуть" style="width: 46px; height: 40px; border: 0; padding: 0; background: transparent; color: {{c.text2}}; display: flex; align-items: center; justify-content: center"><svg aria-hidden="true" width="10" height="10" viewBox="0 0 10 10"><rect x="0.5" y="0.5" width="9" height="9" rx="1.5" fill="none" stroke="currentColor" stroke-width="1"></rect></svg></button>
+<button aria-label="Закрыть" style="width: 46px; height: 40px; border: 0; padding: 0; background: transparent; color: {{c.text2}}; display: flex; align-items: center; justify-content: center"><svg aria-hidden="true" width="10" height="10" viewBox="0 0 10 10"><path d="M0.5 0.5l9 9M9.5 0.5l-9 9" stroke="currentColor" stroke-width="1"></path></svg></button>
+</div>
+
+<div style="flex: 1; min-height: 0; display: flex">
+
+<!-- Sidebar (wide) -->
+<sc-if value="{{wide}}" hint-placeholder-val="{{ true }}">
+<nav aria-label="Разделы" style="width: 188px; flex: none; display: flex; flex-direction: column; padding: 4px 10px 12px; box-sizing: border-box; gap: 2px">
+<sc-for list="{{nav}}" as="n" hint-placeholder-count="4">
+<button onClick="{{n.go}}" style="height: 36px; display: flex; align-items: center; gap: 10px; padding: 0 10px; border: 0; border-radius: 6px; background: {{n.bg}}; color: {{n.color}}; font: inherit; font-size: 13px; font-weight: {{n.weight}}; text-align: left">
+<span style="display: flex; color: {{n.iconColor}}"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="{{n.icon}}"></path></svg></span>
+<span>{{n.label}}</span>
+</button>
+</sc-for>
+<div style="flex: 1"></div>
+<div style="border-radius: 8px; padding: 12px; background: {{c.accentSoft}}; display: flex; flex-direction: column; gap: 8px">
+<div style="display: flex; align-items: center; gap: 8px; color: {{c.accent}}; font-weight: 600; font-size: 12px; line-height: 16px">
+<svg aria-hidden="true" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2.5v7.5M4.8 7l3.2 3.2L11.2 7M3 13.5h10"></path></svg>
+Доступно обновление
+</div>
+<div style="font-size: 12px; line-height: 16px; color: {{c.text2}}">Версия 1.0.4 · 11,9 МБ</div>
+<button onClick="{{goAbout}}" style="height: 28px; border: 0; border-radius: 6px; background: {{c.accentBtn}}; color: #fff; font: inherit; font-size: 12px; font-weight: 600">Обновить</button>
+</div>
+</nav>
+</sc-if>
+
+<!-- Rail (narrow) -->
+<sc-if value="{{narrow}}" hint-placeholder-val="{{ false }}">
+<nav aria-label="Разделы" style="width: 56px; flex: none; display: flex; flex-direction: column; align-items: center; padding: 4px 0 12px; gap: 4px">
+<sc-for list="{{nav}}" as="n" hint-placeholder-count="4">
+<button aria-label="{{n.label}}" onClick="{{n.go}}" style="width: 44px; height: 40px; display: flex; align-items: center; justify-content: center; border: 0; border-radius: 6px; background: {{n.bg}}; color: {{n.iconColor}}; padding: 0"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="{{n.icon}}"></path></svg></button>
+</sc-for>
+<div style="flex: 1"></div>
+<button aria-label="Доступно обновление" onClick="{{goAbout}}" style="position: relative; width: 44px; height: 40px; border: 0; border-radius: 6px; background: {{c.accentSoft}}; color: {{c.accent}}; display: flex; align-items: center; justify-content: center; padding: 0"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2.5v7.5M4.8 7l3.2 3.2L11.2 7M3 13.5h10"></path></svg><span style="position: absolute; top: 7px; right: 9px; width: 7px; height: 7px; border-radius: 50%; background: {{c.accent}}; border: 2px solid {{c.win}}"></span></button>
+</nav>
+</sc-if>
+
+<!-- Main panel -->
+<div style="flex: 1; min-width: 0; display: flex; border-top: 1px solid {{c.borderSoft}}; border-left: 1px solid {{c.borderSoft}}; border-top-left-radius: 8px; overflow: hidden; background: {{c.content}}">
+
+<!-- ============ TUNNELS ============ -->
+<sc-if value="{{showTunnels}}" hint-placeholder-val="{{ true }}">
+
+<sc-if value="{{wide}}" hint-placeholder-val="{{ true }}">
+<section aria-label="Список туннелей" style="position: relative; width: 252px; flex: none; display: flex; flex-direction: column; background: {{c.list}}; border-right: 1px solid {{c.borderSoft}}">
+<div style="padding: 16px 14px 10px; display: flex; flex-direction: column; gap: 10px">
+<div style="display: flex; align-items: center; gap: 8px">
+<h2 style="margin: 0; font-size: 15px; line-height: 22px; font-weight: 600">Туннели</h2>
+<span style="font-size: 11px; line-height: 16px; padding: 0 6px; border-radius: 999px; background: {{c.card2}}; color: {{c.text2}}; font-weight: 600">{{tunnelCount}}</span>
+<div style="flex: 1"></div>
+<button aria-label="Добавить туннель" aria-haspopup="menu" onClick="{{toggleAdd}}" style="height: 30px; display: flex; align-items: center; gap: 4px; padding: 0 8px 0 10px; border: 0; border-radius: 6px; background: {{c.accentBtn}}; color: #fff; font: inherit; font-size: 12px; font-weight: 600">
+<svg aria-hidden="true" width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M8 3v10M3 8h10"></path></svg>
+Добавить
+<svg aria-hidden="true" width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6l4 4 4-4"></path></svg>
+</button>
+</div>
+<label style="height: 32px; display: flex; align-items: center; gap: 8px; padding: 0 10px; border-radius: 6px; background: {{c.card}}; border: 1px solid {{c.border}}; color: {{c.text3}}">
+<svg aria-hidden="true" width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="7" cy="7" r="4.5"></circle><path d="M10.5 10.5L14 14"></path></svg>
+<input aria-label="Поиск туннеля" placeholder="Поиск" value="{{query}}" onChange="{{onQuery}}" style="flex: 1; min-width: 0; border: 0; outline: none; background: transparent; color: {{c.text}}; font: inherit; font-size: 13px">
+<span style="font-size: 11px; color: {{c.text3}}; font-family: 'JetBrains Mono', Consolas, monospace">Ctrl+F</span>
+</label>
+</div>
+<div style="flex: 1; min-height: 0; overflow: hidden; padding: 0 8px; display: flex; flex-direction: column; gap: 2px">
+<sc-for list="{{tunnels}}" as="t" hint-placeholder-count="8">
+<div style="display: flex; align-items: center; gap: 8px; height: 48px; padding: 0 8px 0 10px; border-radius: 8px; background: {{t.bg}}; border: 1px solid {{t.border}}; box-sizing: border-box">
+<sc-if value="{{multi}}" hint-placeholder-val="{{ false }}">
+<span role="checkbox" aria-checked="{{t.checked}}" aria-label="Выбрать {{t.id}}" style="width: 16px; height: 16px; flex: none; border-radius: 4px; box-sizing: border-box; border: 1.5px solid {{t.cbBorder}}; background: {{t.cbBg}}; display: flex; align-items: center; justify-content: center; color: #fff"><svg aria-hidden="true" width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="opacity: {{t.cbOpacity}}"><path d="M2.5 6.2l2.4 2.3 4.6-5"></path></svg></span>
+</sc-if>
+<button onClick="{{t.pick}}" style="flex: 1; min-width: 0; height: 46px; display: flex; align-items: center; gap: 10px; border: 0; padding: 0; background: transparent; color: {{c.text}}; font: inherit; text-align: left">
+<span style="width: 8px; height: 8px; flex: none; border-radius: 50%; background: {{t.dot}}; box-shadow: 0 0 0 3px {{t.dotHalo}}"></span>
+<span style="min-width: 0; display: flex; flex-direction: column">
+<span style="font-size: 13px; line-height: 18px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{t.id}}</span>
+<span style="font-size: 11px; line-height: 16px; color: {{t.subColor}}">{{t.sub}}</span>
+</span>
+</button>
+<button role="switch" aria-checked="{{t.on}}" aria-label="Подключить {{t.id}}" onClick="{{t.toggle}}" style="position: relative; width: 36px; height: 20px; flex: none; padding: 0; border-radius: 999px; box-sizing: border-box; border: 1px solid {{t.trackBorder}}; background: {{t.trackBg}}"><span style="position: absolute; top: 3px; left: {{t.knobX}}; width: 12px; height: 12px; border-radius: 50%; background: {{t.knob}}"></span></button>
+</div>
+</sc-for>
+</div>
+<sc-if value="{{multi}}" hint-placeholder-val="{{ false }}">
+<div style="margin: 8px; padding: 8px 8px 8px 12px; border-radius: 8px; background: {{c.card}}; border: 1px solid {{c.border}}; display: flex; align-items: center; gap: 6px; box-shadow: {{c.shadow}}">
+<span style="flex: 1; font-size: 12px; font-weight: 600">Выбрано: 3</span>
+<button style="height: 28px; padding: 0 10px; border-radius: 6px; border: 1px solid {{c.border}}; background: {{c.card2}}; color: {{c.text}}; font: inherit; font-size: 12px">Экспорт</button>
+<button style="height: 28px; padding: 0 10px; border-radius: 6px; border: 0; background: {{c.danger}}; color: #fff; font: inherit; font-size: 12px; font-weight: 600">Удалить</button>
+</div>
+</sc-if>
+<sc-if value="{{notMulti}}" hint-placeholder-val="{{ true }}">
+<div style="height: 44px; flex: none; display: flex; align-items: center; gap: 4px; padding: 0 8px; border-top: 1px solid {{c.borderSoft}}">
+<button style="flex: 1; height: 30px; display: flex; align-items: center; gap: 8px; padding: 0 8px; border: 0; border-radius: 6px; background: transparent; color: {{c.text2}}; font: inherit; font-size: 12px; text-align: left">
+<svg aria-hidden="true" width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="2.5" width="11" height="11" rx="2"></rect><path d="M8 2.5v3M7 6.5h2M7 8.5h2v2H7z"></path></svg>
+Экспорт всех в .zip
+</button>
+<button aria-label="Выбрать несколько" onClick="{{toggleMulti}}" style="width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; border: 0; border-radius: 6px; background: transparent; color: {{c.text2}}; padding: 0"><svg aria-hidden="true" width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="5" height="5" rx="1.2"></rect><rect x="2" y="9" width="5" height="5" rx="1.2"></rect><path d="M9.5 4.5h4.5M9.5 11.5h4.5"></path></svg></button>
+<button aria-label="Удалить выбранный туннель" onClick="{{openDelete}}" style="width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; border: 0; border-radius: 6px; background: transparent; color: {{c.text2}}; padding: 0"><svg aria-hidden="true" width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4.5h10M6.5 4.5V3h3v1.5M4.5 4.5l.6 8.5a1 1 0 0 0 1 .9h3.8a1 1 0 0 0 1-.9l.6-8.5"></path></svg></button>
+</div>
+</sc-if>
+
+<!-- Add menu -->
+<sc-if value="{{showAdd}}" hint-placeholder-val="{{ false }}">
+<div role="menu" aria-label="Добавить туннель" style="position: absolute; top: 52px; left: 14px; right: -60px; z-index: 5; padding: 6px; border-radius: 12px; background: {{c.card}}; border: 1px solid {{c.border}}; box-shadow: {{c.shadow}}; display: flex; flex-direction: column; gap: 2px">
+<sc-for list="{{addItems}}" as="a" hint-placeholder-count="4">
+<button role="menuitem" style="height: 44px; display: flex; align-items: center; gap: 12px; padding: 0 10px; border: 0; border-radius: 8px; background: {{a.bg}}; color: {{c.text}}; font: inherit; text-align: left">
+<span style="width: 28px; height: 28px; flex: none; border-radius: 6px; background: {{c.card2}}; color: {{c.accent}}; display: flex; align-items: center; justify-content: center"><svg aria-hidden="true" width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="{{a.icon}}"></path></svg></span>
+<span style="flex: 1; display: flex; flex-direction: column"><span style="font-size: 13px; line-height: 18px; font-weight: 500">{{a.label}}</span><span style="font-size: 11px; line-height: 14px; color: {{c.text3}}">{{a.hint}}</span></span>
+<span style="font-size: 11px; color: {{c.text3}}; font-family: 'JetBrains Mono', Consolas, monospace">{{a.kbd}}</span>
+</button>
+</sc-for>
+</div>
+</sc-if>
+</section>
+</sc-if>
+
+<!-- Details -->
+<section aria-label="Детали туннеля" style="flex: 1; min-width: 0; overflow: hidden; background: {{c.content}}">
+<div style="padding: {{detPad}}; display: flex; flex-direction: column; gap: 14px">
+
+<div style="display: flex; align-items: center; gap: 8px; min-height: 36px">
+<sc-if value="{{narrow}}" hint-placeholder-val="{{ false }}">
+<button aria-haspopup="listbox" style="flex: 1; min-width: 0; height: 36px; display: flex; align-items: center; gap: 10px; padding: 0 12px; border-radius: 8px; border: 1px solid {{c.border}}; background: {{c.card}}; color: {{c.text}}; font: inherit; text-align: left">
+<span style="width: 8px; height: 8px; border-radius: 50%; background: {{st.color}}"></span>
+<span style="font-size: 14px; font-weight: 600">{{sel.id}}</span>
+<span style="font-size: 12px; color: {{c.text3}}">{{sel.typeLabel}} · ещё {{othersCount}}</span>
+<span style="flex: 1"></span>
+<svg aria-hidden="true" width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="{{c.text2}}" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6l4 4 4-4"></path></svg>
+</button>
+</sc-if>
+<sc-if value="{{wide}}" hint-placeholder-val="{{ true }}">
+<div style="flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px">
+<h1 style="margin: 0; font-size: 20px; line-height: 28px; font-weight: 600; letter-spacing: -0.01em">{{sel.id}}</h1>
+<span style="font-size: 11px; line-height: 18px; padding: 0 8px; border-radius: 999px; border: 1px solid {{c.border}}; color: {{c.text2}}; font-weight: 500">{{sel.typeLabel}}</span>
+</div>
+</sc-if>
+<a href="Editor.dc.html" style="height: 32px; display: inline-flex; align-items: center; gap: 6px; padding: 0 12px; border-radius: 6px; border: 1px solid {{c.border}}; background: {{c.card2}}; color: {{c.text}}; text-decoration: none; font-size: 13px; font-weight: 500">
+<svg aria-hidden="true" width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.5 2.5l3 3L6 13H3v-3z"></path></svg>
+Редактировать
+</a>
+<button aria-label="Экспорт туннеля" style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; padding: 0; border-radius: 6px; border: 1px solid {{c.border}}; background: {{c.card2}}; color: {{c.text}}"><svg aria-hidden="true" width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 10V2.5M5 5.5l3-3 3 3M3 10v2.5a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V10"></path></svg></button>
+<button aria-label="Удалить туннель" onClick="{{openDelete}}" style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; padding: 0; border-radius: 6px; border: 1px solid {{c.border}}; background: {{c.card2}}; color: {{c.red}}"><svg aria-hidden="true" width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4.5h10M6.5 4.5V3h3v1.5M4.5 4.5l.6 8.5a1 1 0 0 0 1 .9h3.8a1 1 0 0 0 1-.9l.6-8.5"></path></svg></button>
+</div>
+
+<!-- Hero -->
+<div style="background: {{c.card}}; border: 1px solid {{c.border}}; border-radius: 12px; padding: 20px; display: flex; align-items: center; gap: 22px">
+<button aria-label="{{st.action}}" onClick="{{toggleSel}}" style="position: relative; width: 96px; height: 96px; flex: none; box-sizing: border-box; border-radius: 50%; border: 2px solid {{st.ring}}; background: {{st.soft}}; color: {{st.color}}; display: flex; align-items: center; justify-content: center; padding: 0; box-shadow: 0 0 0 {{st.halo}} {{st.soft}}">
+<sc-if value="{{busy}}" hint-placeholder-val="{{ false }}">
+<svg aria-hidden="true" width="112" height="112" viewBox="0 0 112 112" style="position: absolute; left: -10px; top: -10px"><circle cx="56" cy="56" r="54" fill="none" stroke="{{st.color}}" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="70 270" transform="rotate(-60 56 56)"></circle></svg>
+</sc-if>
+<svg aria-hidden="true" width="34" height="34" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M8 2v5.5"></path><path d="M4.6 4.2a5 5 0 1 0 6.8 0"></path></svg>
+</button>
+<div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 12px">
+<div>
+<div style="display: flex; align-items: center; gap: 8px">
+<span style="font-size: 18px; line-height: 24px; font-weight: 600; color: {{st.color}}">{{st.label}}</span>
+<sc-if value="{{live}}" hint-placeholder-val="{{ true }}"><span style="font-size: 18px; line-height: 24px; font-weight: 600; font-variant-numeric: tabular-nums; color: {{c.text}}">00:42:17</span></sc-if>
+</div>
+<div style="font-size: 12px; line-height: 18px; color: {{c.text2}}">{{st.sub}}</div>
+</div>
+<div style="display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 4px 16px; font-size: 12px; line-height: 18px">
+<span style="color: {{c.text3}}">Endpoint</span><span style="font-family: 'JetBrains Mono', Consolas, monospace; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{sel.endpoint}}</span>
+<span style="color: {{c.text3}}">Адрес в туннеле</span><span style="font-family: 'JetBrains Mono', Consolas, monospace">{{sel.addr}}</span>
+<span style="color: {{c.text3}}">Внешний IP</span><span style="font-family: 'JetBrains Mono', Consolas, monospace; color: {{extColor}}">{{extIp}}</span>
+</div>
+</div>
+</div>
+
+<sc-if value="{{isError}}" hint-placeholder-val="{{ false }}">
+<div role="alert" style="display: flex; gap: 12px; padding: 12px 14px; border-radius: 8px; background: {{c.redSoft}}; border: 1px solid {{c.redBorder}}">
+<svg aria-hidden="true" width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="{{c.red}}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="flex: none; margin-top: 1px"><path d="M8 1.8l6.5 11.4H1.5z"></path><path d="M8 6.2v3.2M8 11.3v.1"></path></svg>
+<div style="flex: 1; min-width: 0">
+<div style="font-weight: 600; color: {{c.red}}">Не удалось установить соединение</div>
+<div style="font-size: 12px; line-height: 18px; color: {{c.text2}}">Пир {{sel.endpoint}} не ответил после 20 попыток handshake. Проверьте endpoint и параметры обфускации — они должны совпадать с сервером.</div>
+<div style="display: flex; gap: 8px; margin-top: 10px">
+<button onClick="{{toggleSel}}" style="height: 28px; padding: 0 12px; border: 0; border-radius: 6px; background: {{c.accentBtn}}; color: #fff; font: inherit; font-size: 12px; font-weight: 600">Повторить</button>
+<button onClick="{{goLog}}" style="height: 28px; padding: 0 12px; border-radius: 6px; border: 1px solid {{c.border}}; background: {{c.card2}}; color: {{c.text}}; font: inherit; font-size: 12px">Открыть журнал</button>
+</div>
+</div>
+</div>
+</sc-if>
+
+<!-- Stats -->
+<div style="background: {{c.card}}; border: 1px solid {{c.border}}; border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 12px">
+<div style="display: flex; align-items: flex-end; gap: 28px">
+<div>
+<div style="display: flex; align-items: center; gap: 6px; font-size: 12px; line-height: 16px; color: {{c.text3}}"><span style="width: 8px; height: 2px; border-radius: 1px; background: {{c.accent}}"></span>Загрузка</div>
+<div style="font-size: 24px; line-height: 32px; font-weight: 600; font-variant-numeric: tabular-nums; letter-spacing: -0.01em">{{rx}} <span style="font-size: 12px; font-weight: 500; color: {{c.text2}}">Мбит/с</span></div>
+</div>
+<div>
+<div style="display: flex; align-items: center; gap: 6px; font-size: 12px; line-height: 16px; color: {{c.text3}}"><span style="width: 8px; height: 2px; border-radius: 1px; background: {{c.up}}"></span>Отдача</div>
+<div style="font-size: 24px; line-height: 32px; font-weight: 600; font-variant-numeric: tabular-nums; letter-spacing: -0.01em">{{tx}} <span style="font-size: 12px; font-weight: 500; color: {{c.text2}}">Мбит/с</span></div>
+</div>
+<div style="flex: 1"></div>
+<span style="font-size: 11px; line-height: 16px; color: {{c.text3}}">последние 60 с</span>
+</div>
+<sc-if value="{{live}}" hint-placeholder-val="{{ true }}">
+<svg role="img" aria-label="График скорости за последние 60 секунд" width="100%" height="72" viewBox="0 0 600 72" preserveAspectRatio="none" style="display: block">
+<path d="M0 24H600M0 48H600" stroke="{{c.borderSoft}}" stroke-width="1" vector-effect="non-scaling-stroke"></path>
+<polygon points="{{areaPts}}" fill="{{c.accentSoft}}"></polygon>
+<polyline points="{{downPts}}" fill="none" stroke="{{c.accent}}" stroke-width="1.75" stroke-linejoin="round" vector-effect="non-scaling-stroke"></polyline>
+<polyline points="{{upPts}}" fill="none" stroke="{{c.up}}" stroke-width="1.5" stroke-linejoin="round" vector-effect="non-scaling-stroke"></polyline>
+</svg>
+</sc-if>
+<sc-if value="{{notLive}}" hint-placeholder-val="{{ false }}">
+<div style="height: 72px; border-radius: 8px; border: 1px dashed {{c.border}}; display: flex; align-items: center; justify-content: center; font-size: 12px; color: {{c.text3}}">{{graphEmpty}}</div>
+</sc-if>
+<div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; padding-top: 12px; border-top: 1px solid {{c.borderSoft}}">
+<div><div style="font-size: 11px; line-height: 16px; color: {{c.text3}}">Получено</div><div style="font-size: 13px; font-weight: 500; font-variant-numeric: tabular-nums">{{rxTotal}}</div></div>
+<div><div style="font-size: 11px; line-height: 16px; color: {{c.text3}}">Отправлено</div><div style="font-size: 13px; font-weight: 500; font-variant-numeric: tabular-nums">{{txTotal}}</div></div>
+<div><div style="font-size: 11px; line-height: 16px; color: {{c.text3}}">Последний handshake</div><div style="font-size: 13px; font-weight: 500">{{hs}}</div></div>
+</div>
+</div>
+
+<!-- Interface -->
+<div style="background: {{c.card}}; border: 1px solid {{c.border}}; border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 10px">
+<h3 style="margin: 0; font-size: 13px; line-height: 20px; font-weight: 600">Интерфейс</h3>
+<div style="display: grid; grid-template-columns: 150px minmax(0, 1fr); gap: 0; font-size: 12px; line-height: 18px">
+<sc-for list="{{ifaceRows}}" as="r" hint-placeholder-count="6">
+<span style="padding: 7px 0; color: {{c.text3}}; border-top: 1px solid {{r.line}}">{{r.label}}</span>
+<span style="padding: 7px 0; display: flex; align-items: center; gap: 6px; min-width: 0; border-top: 1px solid {{r.line}}">
+<span style="flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-family: {{r.font}}">{{r.value}}</span>
+<sc-if value="{{r.copy}}" hint-placeholder-val="{{ false }}"><button aria-label="Копировать" style="width: 24px; height: 24px; flex: none; display: flex; align-items: center; justify-content: center; border: 0; border-radius: 4px; background: {{c.card2}}; color: {{c.text2}}; padding: 0"><svg aria-hidden="true" width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="5.5" y="5.5" width="8" height="8" rx="1.5"></rect><path d="M10.5 3.5V3a1 1 0 0 0-1-1H3a1 1 0 0 0-1 1v6.5a1 1 0 0 0 1 1h.5"></path></svg></button></sc-if>
+</span>
+</sc-for>
+<span style="padding: 7px 0; color: {{c.text3}}; border-top: 1px solid {{c.borderSoft}}">Скрипты</span>
+<span style="padding: 7px 0; border-top: 1px solid {{c.borderSoft}}; display: grid; grid-template-columns: 76px minmax(0, 1fr); gap: 2px 8px; font-family: 'JetBrains Mono', Consolas, monospace; font-size: 11.5px">
+<span style="color: {{c.text3}}">pre-up</span><span style="color: {{c.text3}}">—</span>
+<span style="color: {{c.text3}}">post-up</span><span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis">powershell -File routes-add.ps1</span>
+<span style="color: {{c.text3}}">pre-down</span><span style="color: {{c.text3}}">—</span>
+<span style="color: {{c.text3}}">post-down</span><span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis">powershell -File routes-del.ps1</span>
+</span>
+</div>
+</div>
+
+<!-- Obfuscation -->
+<div style="background: {{c.card}}; border: 1px solid {{c.border}}; border-radius: 12px; overflow: hidden">
+<button aria-expanded="{{obfOpen}}" onClick="{{toggleObf}}" style="width: 100%; height: 52px; display: flex; align-items: center; gap: 10px; padding: 0 16px; border: 0; background: transparent; color: {{c.text}}; font: inherit; text-align: left">
+<svg aria-hidden="true" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="{{c.accent}}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 1.5l5.5 2v4.2c0 3.2-2.3 5.7-5.5 6.8-3.2-1.1-5.5-3.6-5.5-6.8V3.5z"></path><path d="M5.2 8.4l1.4-1.6 1.4 1.6 1.4-1.6 1.4 1.6"></path></svg>
+<span style="font-size: 13px; font-weight: 600">Обфускация AmneziaWG</span>
+<span style="font-size: 11px; line-height: 18px; padding: 0 8px; border-radius: 999px; background: {{c.accentSoft}}; color: {{c.accent}}; font-weight: 600">Для продвинутых</span>
+<span style="flex: 1"></span>
+<span style="font-size: 12px; color: {{c.text3}}">{{obfHint}}</span>
+<svg aria-hidden="true" width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="{{c.text2}}" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="transform: rotate({{obfRot}})"><path d="M4 6l4 4 4-4"></path></svg>
+</button>
+<sc-if value="{{obfOpen}}" hint-placeholder-val="{{ false }}">
+<div style="padding: 0 16px 16px; display: flex; flex-direction: column; gap: 10px">
+<div style="font-size: 12px; line-height: 18px; color: {{c.text2}}">Параметры маскируют трафик под случайный UDP. Значения должны совпадать с настройками сервера — иначе handshake не пройдёт.</div>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px">
+<sc-for list="{{obf}}" as="o" hint-placeholder-count="10">
+<div style="padding: 8px 10px; border-radius: 8px; background: {{c.card2}}; display: flex; flex-direction: column">
+<span style="font-size: 11px; line-height: 16px; color: {{c.text3}}">{{o.label}}</span>
+<span style="font-size: 12px; line-height: 18px; font-family: 'JetBrains Mono', Consolas, monospace">{{o.value}}</span>
+</div>
+</sc-for>
+</div>
+</div>
+</sc-if>
+</div>
+
+<!-- Peers -->
+<sc-for list="{{peers}}" as="p" hint-placeholder-count="2">
+<div style="background: {{c.card}}; border: 1px solid {{c.border}}; border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 10px">
+<div style="display: flex; align-items: center; gap: 8px">
+<h3 style="margin: 0; font-size: 13px; line-height: 20px; font-weight: 600">{{p.title}}</h3>
+<span style="font-size: 12px; color: {{c.text3}}; font-family: 'JetBrains Mono', Consolas, monospace">{{p.endpoint}}</span>
+<span style="flex: 1"></span>
+<span style="display: flex; align-items: center; gap: 6px; font-size: 11px; color: {{c.text2}}"><span style="width: 6px; height: 6px; border-radius: 50%; background: {{p.dot}}"></span>{{p.hs}}</span>
+</div>
+<div style="display: grid; grid-template-columns: 150px minmax(0, 1fr); font-size: 12px; line-height: 18px">
+<span style="padding: 7px 0; color: {{c.text3}}; border-top: 1px solid {{c.borderSoft}}">Публичный ключ</span>
+<span style="padding: 7px 0; border-top: 1px solid {{c.borderSoft}}; display: flex; align-items: center; gap: 6px; min-width: 0"><span style="flex: 1; min-width: 0; font-family: 'JetBrains Mono', Consolas, monospace; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{p.key}}</span><button aria-label="Копировать ключ" style="width: 24px; height: 24px; flex: none; display: flex; align-items: center; justify-content: center; border: 0; border-radius: 4px; background: {{c.card2}}; color: {{c.text2}}; padding: 0"><svg aria-hidden="true" width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="5.5" y="5.5" width="8" height="8" rx="1.5"></rect><path d="M10.5 3.5V3a1 1 0 0 0-1-1H3a1 1 0 0 0-1 1v6.5a1 1 0 0 0 1 1h.5"></path></svg></button></span>
+<span style="padding: 7px 0; color: {{c.text3}}; border-top: 1px solid {{c.borderSoft}}">Preshared key</span>
+<span style="padding: 7px 0; border-top: 1px solid {{c.borderSoft}}; display: flex; align-items: center; gap: 6px; min-width: 0"><span style="flex: 1; min-width: 0; font-family: 'JetBrains Mono', Consolas, monospace; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: {{p.pskSpacing}}">{{p.psk}}</span><button aria-label="{{p.pskAction}}" onClick="{{p.togglePsk}}" style="height: 24px; flex: none; display: flex; align-items: center; gap: 4px; padding: 0 8px; border: 0; border-radius: 4px; background: {{c.card2}}; color: {{c.text2}}; font: inherit; font-size: 11px"><svg aria-hidden="true" width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 8s2.4-4.5 6.5-4.5S14.5 8 14.5 8 12.1 12.5 8 12.5 1.5 8 1.5 8z"></path><circle cx="8" cy="8" r="2"></circle></svg>{{p.pskAction}}</button></span>
+<span style="padding: 7px 0; color: {{c.text3}}; border-top: 1px solid {{c.borderSoft}}">Endpoint</span>
+<span style="padding: 7px 0; border-top: 1px solid {{c.borderSoft}}; font-family: 'JetBrains Mono', Consolas, monospace">{{p.endpoint}}</span>
+<span style="padding: 7px 0; color: {{c.text3}}; border-top: 1px solid {{c.borderSoft}}">Allowed IPs</span>
+<span style="padding: 7px 0; border-top: 1px solid {{c.borderSoft}}; font-family: 'JetBrains Mono', Consolas, monospace">{{p.allowed}}</span>
+<span style="padding: 7px 0; color: {{c.text3}}; border-top: 1px solid {{c.borderSoft}}">Persistent keepalive</span>
+<span style="padding: 7px 0; border-top: 1px solid {{c.borderSoft}}">{{p.keepalive}}</span>
+<span style="padding: 7px 0; color: {{c.text3}}; border-top: 1px solid {{c.borderSoft}}">Трафик</span>
+<span style="padding: 7px 0; border-top: 1px solid {{c.borderSoft}}; font-variant-numeric: tabular-nums">{{p.traffic}}</span>
+</div>
+</div>
+</sc-for>
+
+</div>
+</section>
+</sc-if>
+
+<!-- ============ EMPTY ============ -->
+<sc-if value="{{showEmpty}}" hint-placeholder-val="{{ false }}">
+<section aria-label="Нет туннелей" style="flex: 1; display: flex; align-items: center; justify-content: center; padding: 32px">
+<div style="width: 100%; max-width: 540px; box-sizing: border-box; padding: 40px 32px; border-radius: 16px; border: 1.5px dashed {{c.border}}; background: {{c.card}}; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 8px">
+<div style="width: 56px; height: 56px; border-radius: 16px; background: {{c.accentSoft}}; color: {{c.accent}}; display: flex; align-items: center; justify-content: center; margin-bottom: 8px"><svg aria-hidden="true" width="28" height="28" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 1.5H4a1 1 0 0 0-1 1v11a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V5z"></path><path d="M9.5 1.5V5H13M8 7.5v4.5M5.8 9.8L8 12l2.2-2.2"></path></svg></div>
+<h1 style="margin: 0; font-size: 20px; line-height: 28px; font-weight: 600">Пока нет ни одного туннеля</h1>
+<p style="margin: 0; max-width: 380px; font-size: 13px; line-height: 20px; color: {{c.text2}}">Перетащите файл <span style="font-family: 'JetBrains Mono', Consolas, monospace; font-size: 12px">.conf</span> или архив <span style="font-family: 'JetBrains Mono', Consolas, monospace; font-size: 12px">.zip</span> в это окно — или выберите способ ниже.</p>
+<button style="margin-top: 16px; height: 36px; padding: 0 18px; display: flex; align-items: center; gap: 8px; border: 0; border-radius: 6px; background: {{c.accentBtn}}; color: #fff; font: inherit; font-size: 13px; font-weight: 600"><svg aria-hidden="true" width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4.5a1 1 0 0 1 1-1h3.5l1.5 1.5h5a1 1 0 0 1 1 1v6.5a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1z"></path></svg>Импорт из файла…</button>
+<div style="display: flex; gap: 8px; margin-top: 4px">
+<button style="height: 32px; padding: 0 12px; border-radius: 6px; border: 1px solid {{c.border}}; background: {{c.card2}}; color: {{c.text}}; font: inherit; font-size: 12px">Вставить из буфера</button>
+<button style="height: 32px; padding: 0 12px; border-radius: 6px; border: 1px solid {{c.border}}; background: {{c.card2}}; color: {{c.text}}; font: inherit; font-size: 12px">Сканировать QR</button>
+<button style="height: 32px; padding: 0 12px; border-radius: 6px; border: 1px solid {{c.border}}; background: {{c.card2}}; color: {{c.text}}; font: inherit; font-size: 12px">Создать пустой</button>
+</div>
+<div style="margin-top: 12px; font-size: 11px; line-height: 16px; color: {{c.text3}}">Поддерживаются конфигурации WireGuard и AmneziaWG</div>
+</div>
+</section>
+</sc-if>
+
+<!-- ============ LOG ============ -->
+<sc-if value="{{showLog}}" hint-placeholder-val="{{ false }}">
+<section aria-label="Журнал" style="flex: 1; min-width: 0; display: flex; flex-direction: column; padding: 20px 24px; gap: 12px; box-sizing: border-box">
+<div style="display: flex; align-items: center; gap: 12px">
+<div style="flex: 1">
+<h1 style="margin: 0; font-size: 20px; line-height: 28px; font-weight: 600">Журнал</h1>
+<div style="font-size: 12px; line-height: 16px; color: {{c.text3}}">Сеанс с 24.11.2026, 19:02 · {{logCount}} записей</div>
+</div>
+<button style="height: 32px; display: flex; align-items: center; gap: 6px; padding: 0 12px; border-radius: 6px; border: 1px solid {{c.border}}; background: {{c.card2}}; color: {{c.text}}; font: inherit; font-size: 13px"><svg aria-hidden="true" width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="5.5" y="5.5" width="8" height="8" rx="1.5"></rect><path d="M10.5 3.5V3a1 1 0 0 0-1-1H3a1 1 0 0 0-1 1v6.5a1 1 0 0 0 1 1h.5"></path></svg>Копировать</button>
+<button style="height: 32px; display: flex; align-items: center; gap: 6px; padding: 0 12px; border: 0; border-radius: 6px; background: {{c.accentBtn}}; color: #fff; font: inherit; font-size: 13px; font-weight: 600"><svg aria-hidden="true" width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2.5v7.5M4.8 7l3.2 3.2L11.2 7M3 13.5h10"></path></svg>Сохранить в файл…</button>
+</div>
+<div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap">
+<label style="width: 240px; height: 32px; display: flex; align-items: center; gap: 8px; padding: 0 10px; box-sizing: border-box; border-radius: 6px; background: {{c.card}}; border: 1px solid {{c.border}}; color: {{c.text3}}">
+<svg aria-hidden="true" width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="7" cy="7" r="4.5"></circle><path d="M10.5 10.5L14 14"></path></svg>
+<input aria-label="Поиск по журналу" placeholder="Фильтр по тексту" value="{{logQuery}}" onChange="{{onLogQuery}}" style="flex: 1; min-width: 0; border: 0; outline: none; background: transparent; color: {{c.text}}; font: inherit; font-size: 13px">
+</label>
+<div role="radiogroup" aria-label="Уровень" style="display: flex; gap: 2px; padding: 2px; border-radius: 8px; background: {{c.card2}}">
+<sc-for list="{{levels}}" as="l" hint-placeholder-count="4">
+<button role="radio" aria-checked="{{l.on}}" onClick="{{l.pick}}" style="height: 28px; padding: 0 10px; border: 0; border-radius: 6px; background: {{l.bg}}; color: {{l.color}}; font: inherit; font-size: 12px; font-weight: 500; box-shadow: {{l.shadow}}">{{l.label}}</button>
+</sc-for>
+</div>
+<div style="flex: 1"></div>
+<label style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: {{c.text2}}">
+<span style="width: 16px; height: 16px; border-radius: 4px; background: {{c.accentBtn}}; display: flex; align-items: center; justify-content: center; color: #fff"><svg aria-hidden="true" width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 6.2l2.4 2.3 4.6-5"></path></svg></span>
+<input type="checkbox" checked aria-label="Автопрокрутка" style="position: absolute; opacity: 0; width: 1px; height: 1px">
+Автопрокрутка
+</label>
+</div>
+<div style="flex: 1; min-height: 0; display: flex; flex-direction: column; border-radius: 12px; border: 1px solid {{c.border}}; background: {{c.card}}; overflow: hidden">
+<div style="height: 32px; flex: none; display: grid; grid-template-columns: 104px 76px minmax(0, 1fr); align-items: center; padding: 0 14px; font-size: 11px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: {{c.text3}}; border-bottom: 1px solid {{c.borderSoft}}">
+<span>Время</span><span>Уровень</span><span>Сообщение</span>
+</div>
+<div style="flex: 1; min-height: 0; overflow: hidden; display: flex; flex-direction: column; justify-content: flex-end; padding: 4px 0">
+<sc-for list="{{logs}}" as="g" hint-placeholder-count="16">
+<div style="display: grid; grid-template-columns: 104px 76px minmax(0, 1fr); align-items: center; padding: 0 14px; min-height: 22px; font-family: 'JetBrains Mono', Consolas, monospace; font-size: 11.5px; line-height: 20px; background: {{g.bg}}">
+<span style="color: {{c.text3}}">{{g.t}}</span>
+<span style="color: {{g.levelColor}}; font-weight: 500">{{g.level}}</span>
+<span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: {{g.color}}">{{g.m}}</span>
+</div>
+</sc-for>
+</div>
+</div>
+</section>
+</sc-if>
+
+<!-- ============ SETTINGS ============ -->
+<sc-if value="{{showSettings}}" hint-placeholder-val="{{ false }}">
+<section aria-label="Настройки" style="flex: 1; min-width: 0; overflow: hidden; padding: 20px 24px">
+<div style="max-width: 620px; display: flex; flex-direction: column; gap: 16px">
+<h1 style="margin: 0; font-size: 20px; line-height: 28px; font-weight: 600">Настройки</h1>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<h2 style="margin: 0; font-size: 11px; line-height: 16px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: {{c.text3}}">Оформление</h2>
+<div style="border-radius: 12px; border: 1px solid {{c.border}}; background: {{c.card}}">
+<div style="display: flex; align-items: center; gap: 16px; padding: 12px 16px">
+<div style="flex: 1"><div style="font-weight: 500">Тема</div><div style="font-size: 12px; line-height: 16px; color: {{c.text3}}">Mica-фон окна подстраивается под обои</div></div>
+<div role="radiogroup" aria-label="Тема" style="display: flex; gap: 2px; padding: 2px; border-radius: 8px; background: {{c.card2}}">
+<sc-for list="{{themes}}" as="o" hint-placeholder-count="3">
+<button role="radio" aria-checked="{{o.on}}" onClick="{{o.pick}}" style="height: 28px; padding: 0 12px; border: 0; border-radius: 6px; background: {{o.bg}}; color: {{o.color}}; font: inherit; font-size: 12px; font-weight: 500; box-shadow: {{o.shadow}}">{{o.label}}</button>
+</sc-for>
+</div>
+</div>
+<div style="display: flex; align-items: center; gap: 16px; padding: 12px 16px; border-top: 1px solid {{c.borderSoft}}">
+<div style="flex: 1"><div style="font-weight: 500">Язык интерфейса</div><div style="font-size: 12px; line-height: 16px; color: {{c.text3}}">Применится после перезапуска</div></div>
+<button aria-haspopup="listbox" style="height: 32px; min-width: 160px; display: flex; align-items: center; gap: 8px; padding: 0 10px 0 12px; border-radius: 6px; border: 1px solid {{c.border}}; background: {{c.card2}}; color: {{c.text}}; font: inherit; font-size: 13px; text-align: left"><span style="flex: 1">Русский</span><svg aria-hidden="true" width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="{{c.text2}}" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6l4 4 4-4"></path></svg></button>
+</div>
+</div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<h2 style="margin: 0; font-size: 11px; line-height: 16px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: {{c.text3}}">Запуск и подключение</h2>
+<div style="border-radius: 12px; border: 1px solid {{c.border}}; background: {{c.card}}">
+<sc-for list="{{setRows}}" as="s" hint-placeholder-count="5">
+<div style="display: flex; align-items: center; gap: 16px; padding: 12px 16px; border-top: 1px solid {{s.line}}">
+<div style="flex: 1"><div style="font-weight: 500">{{s.label}}</div><div style="font-size: 12px; line-height: 16px; color: {{c.text3}}">{{s.hint}}</div></div>
+<sc-if value="{{s.hasSelect}}" hint-placeholder-val="{{ false }}"><button aria-haspopup="listbox" style="height: 28px; display: flex; align-items: center; gap: 8px; padding: 0 8px 0 10px; border-radius: 6px; border: 1px solid {{c.border}}; background: {{c.card2}}; color: {{s.selectColor}}; font: inherit; font-size: 12px"><span style="width: 6px; height: 6px; border-radius: 50%; background: {{c.green}}"></span>ams-01<svg aria-hidden="true" width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="{{c.text2}}" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6l4 4 4-4"></path></svg></button></sc-if>
+<button role="switch" aria-checked="{{s.on}}" aria-label="{{s.label}}" onClick="{{s.toggle}}" style="position: relative; width: 40px; height: 20px; flex: none; padding: 0; border-radius: 999px; box-sizing: border-box; border: 1px solid {{s.trackBorder}}; background: {{s.trackBg}}"><span style="position: absolute; top: 3px; left: {{s.knobX}}; width: 12px; height: 12px; border-radius: 50%; background: {{s.knob}}"></span></button>
+</div>
+</sc-for>
+</div>
+</div>
+</div>
+</section>
+</sc-if>
+
+<!-- ============ ABOUT ============ -->
+<sc-if value="{{showAbout}}" hint-placeholder-val="{{ false }}">
+<section aria-label="О программе" style="flex: 1; min-width: 0; overflow: hidden; padding: 20px 24px">
+<div style="max-width: 600px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px">
+<div style="border-radius: 12px; padding: 16px; background: {{c.accentSoft}}; display: flex; flex-direction: column; gap: 12px">
+<div style="display: flex; align-items: center; gap: 12px">
+<span style="width: 36px; height: 36px; flex: none; border-radius: 8px; background: {{c.accentBtn}}; color: #fff; display: flex; align-items: center; justify-content: center"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2.5v7.5M4.8 7l3.2 3.2L11.2 7M3 13.5h10"></path></svg></span>
+<div style="flex: 1; min-width: 0">
+<div style="font-weight: 600">{{upd.title}}</div>
+<div style="font-size: 12px; line-height: 18px; color: {{c.text2}}">{{upd.sub}}</div>
+</div>
+<sc-if value="{{upd.idle}}" hint-placeholder-val="{{ true }}"><button onClick="{{startUpdate}}" style="height: 32px; padding: 0 14px; border: 0; border-radius: 6px; background: {{c.accentBtn}}; color: #fff; font: inherit; font-size: 13px; font-weight: 600">Обновить сейчас</button></sc-if>
+<sc-if value="{{upd.busy}}" hint-placeholder-val="{{ false }}"><button onClick="{{cancelUpdate}}" style="height: 32px; padding: 0 14px; border-radius: 6px; border: 1px solid {{c.border}}; background: {{c.card}}; color: {{c.text}}; font: inherit; font-size: 13px">Отмена</button></sc-if>
+</div>
+<sc-if value="{{upd.busy}}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; flex-direction: column; gap: 6px">
+<div role="progressbar" aria-valuenow="62" aria-valuemin="0" aria-valuemax="100" aria-label="Загрузка обновления" style="height: 6px; border-radius: 999px; background: {{c.card}}; overflow: hidden"><div style="width: 62%; height: 6px; border-radius: 999px; background: {{c.accentBtn}}"></div></div>
+<div style="display: flex; font-size: 11px; line-height: 16px; color: {{c.text2}}; font-variant-numeric: tabular-nums"><span style="flex: 1">Загрузка… 7,4 из 11,9 МБ · 2,1 МБ/с</span><span>62%</span></div>
+</div>
+</sc-if>
+</div>
+<div style="display: flex; align-items: center; gap: 16px; padding: 8px 0">
+<svg role="img" aria-label="Логотип NET PORTAL" width="64" height="64" viewBox="0 0 64 64"><rect width="64" height="64" rx="16" fill="{{c.accentBtn}}"></rect><path d="M32 13l15 5.5v11.3c0 8.8-6.3 15.6-15 18.7-8.7-3.1-15-9.9-15-18.7V18.5z" fill="none" stroke="#fff" stroke-width="2.4" stroke-linejoin="round" opacity="0.55"></path><path d="M21.5 33.5l5.2-7 5.3 7 5.3-7 5.2 7" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+<div>
+<h1 style="margin: 0; font-size: 22px; line-height: 30px; font-weight: 700; letter-spacing: 0.02em">NET PORTAL</h1>
+<div style="font-size: 13px; color: {{c.text2}}">VPN-клиент на базе AmneziaWG с обфускацией трафика</div>
+</div>
+</div>
+<div style="border-radius: 12px; border: 1px solid {{c.border}}; background: {{c.card}}; padding: 4px 16px; display: grid; grid-template-columns: 160px minmax(0, 1fr); font-size: 12px; line-height: 18px">
+<sc-for list="{{versions}}" as="v" hint-placeholder-count="5">
+<span style="padding: 8px 0; color: {{c.text3}}; border-top: 1px solid {{v.line}}">{{v.label}}</span>
+<span style="padding: 8px 0; font-family: 'JetBrains Mono', Consolas, monospace; border-top: 1px solid {{v.line}}">{{v.value}}</span>
+</sc-for>
+</div>
+<div style="display: flex; gap: 8px; flex-wrap: wrap">
+<a href="https://amnezia.org" style="height: 32px; display: inline-flex; align-items: center; gap: 6px; padding: 0 12px; border-radius: 6px; border: 1px solid {{c.border}}; background: {{c.card2}}; color: {{c.text}}; text-decoration: none; font-size: 12px">Сайт проекта</a>
+<a href="https://github.com/amnezia-vpn" style="height: 32px; display: inline-flex; align-items: center; gap: 6px; padding: 0 12px; border-radius: 6px; border: 1px solid {{c.border}}; background: {{c.card2}}; color: {{c.text}}; text-decoration: none; font-size: 12px">Исходный код на GitHub</a>
+<a href="https://github.com/amnezia-vpn" style="height: 32px; display: inline-flex; align-items: center; gap: 6px; padding: 0 12px; border-radius: 6px; border: 1px solid {{c.border}}; background: {{c.card2}}; color: {{c.text}}; text-decoration: none; font-size: 12px">Сообщить о проблеме</a>
+<a href="https://github.com/amnezia-vpn" style="height: 32px; display: inline-flex; align-items: center; gap: 6px; padding: 0 12px; border-radius: 6px; border: 1px solid {{c.border}}; background: {{c.card2}}; color: {{c.text}}; text-decoration: none; font-size: 12px">Лицензии</a>
+</div>
+</div>
+</section>
+</sc-if>
+
+</div>
+</div>
+
+<!-- ============ OVERLAYS ============ -->
+<sc-if value="{{showDelete}}" hint-placeholder-val="{{ false }}">
+<div style="position: absolute; left: 0; right: 0; top: 40px; bottom: 0; background: {{c.scrim}}; display: flex; align-items: center; justify-content: center; z-index: 20">
+<div role="dialog" aria-modal="true" aria-labelledby="del-title" style="width: 400px; border-radius: 12px; background: {{c.card}}; border: 1px solid {{c.border}}; box-shadow: {{c.shadow}}; overflow: hidden">
+<div style="padding: 20px; display: flex; gap: 14px">
+<span style="width: 36px; height: 36px; flex: none; border-radius: 50%; background: {{c.redSoft}}; color: {{c.red}}; display: flex; align-items: center; justify-content: center"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4.5h10M6.5 4.5V3h3v1.5M4.5 4.5l.6 8.5a1 1 0 0 0 1 .9h3.8a1 1 0 0 0 1-.9l.6-8.5"></path></svg></span>
+<div>
+<h2 id="del-title" style="margin: 0; font-size: 15px; line-height: 22px; font-weight: 600">Удалить туннель «{{sel.id}}»?</h2>
+<p style="margin: 4px 0 0; font-size: 13px; line-height: 20px; color: {{c.text2}}">Это действие нельзя отменить. Конфигурация и ключи будут удалены с этого компьютера.</p>
+</div>
+</div>
+<div style="display: flex; justify-content: flex-end; gap: 8px; padding: 14px 20px; background: {{c.card2}}; border-top: 1px solid {{c.borderSoft}}">
+<button onClick="{{closeOverlay}}" style="height: 32px; padding: 0 14px; border-radius: 6px; border: 1px solid {{c.border}}; background: {{c.card}}; color: {{c.text}}; font: inherit; font-size: 13px">Отмена</button>
+<button onClick="{{closeOverlay}}" style="height: 32px; padding: 0 14px; border: 0; border-radius: 6px; background: {{c.danger}}; color: #fff; font: inherit; font-size: 13px; font-weight: 600">Удалить</button>
+</div>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{showDrop}}" hint-placeholder-val="{{ false }}">
+<div style="position: absolute; left: 0; right: 0; top: 40px; bottom: 0; padding: 12px; box-sizing: border-box; background: {{c.scrim}}; z-index: 20; display: flex">
+<div style="flex: 1; border-radius: 12px; border: 2px dashed {{c.accent}}; background: {{c.accentSoft}}; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px">
+<div style="width: 64px; height: 64px; border-radius: 18px; background: {{c.accentBtn}}; color: #fff; display: flex; align-items: center; justify-content: center"><svg aria-hidden="true" width="30" height="30" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2.5v8M4.8 7.3L8 10.5l3.2-3.2M3 13.5h10"></path></svg></div>
+<div style="font-size: 20px; line-height: 28px; font-weight: 600; color: #fff">Отпустите, чтобы импортировать</div>
+<div style="display: flex; gap: 6px">
+<span style="padding: 2px 10px; border-radius: 999px; background: {{c.card}}; color: {{c.text}}; font-family: 'JetBrains Mono', Consolas, monospace; font-size: 12px">ams-01.conf</span>
+<span style="padding: 2px 10px; border-radius: 999px; background: {{c.card}}; color: {{c.text}}; font-family: 'JetBrains Mono', Consolas, monospace; font-size: 12px">fra-home.conf</span>
+<span style="padding: 2px 10px; border-radius: 999px; background: {{c.card}}; color: {{c.text}}; font-family: 'JetBrains Mono', Consolas, monospace; font-size: 12px">backup.zip</span>
+</div>
+<div style="font-size: 12px; color: #E6E4FF">3 файла · .conf и .zip</div>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{showToasts}}" hint-placeholder-val="{{ false }}">
+<div style="position: absolute; right: 16px; bottom: 16px; width: 340px; display: flex; flex-direction: column; gap: 8px; z-index: 30">
+<sc-for list="{{toastList}}" as="x" hint-placeholder-count="3">
+<div role="status" style="display: flex; gap: 12px; padding: 12px 12px 12px 14px; border-radius: 10px; background: {{c.card}}; border: 1px solid {{c.border}}; box-shadow: {{c.shadow}}">
+<span style="width: 24px; height: 24px; flex: none; border-radius: 50%; background: {{x.soft}}; color: {{x.color}}; display: flex; align-items: center; justify-content: center"><svg aria-hidden="true" width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="{{x.icon}}"></path></svg></span>
+<div style="flex: 1; min-width: 0">
+<div style="font-size: 13px; line-height: 20px; font-weight: 600">{{x.title}}</div>
+<div style="font-size: 12px; line-height: 18px; color: {{c.text2}}">{{x.text}}</div>
+</div>
+<button aria-label="Закрыть уведомление" onClick="{{closeToast}}" style="width: 24px; height: 24px; flex: none; display: flex; align-items: center; justify-content: center; border: 0; border-radius: 4px; background: transparent; color: {{c.text3}}; padding: 0"><svg aria-hidden="true" width="10" height="10" viewBox="0 0 10 10"><path d="M1 1l8 8M9 1L1 9" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"></path></svg></button>
+</div>
+</sc-for>
+</div>
+</sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["dark","light"],"default":"dark"},"accent":{"editor":"enum","options":["brand","graphite"],"default":"brand"},"screen":{"editor":"enum","options":["tunnels","empty","log","settings","about"],"default":"tunnels"},"status":{"editor":"enum","options":["idle","connecting","connected","disconnecting","error"],"default":"connected"},"overlay":{"editor":"enum","options":["none","addmenu","delete","multiselect","drop"],"default":"none"},"toasts":{"editor":"boolean","default":false},"update":{"editor":"enum","options":["available","downloading"],"default":"available"},"narrow":{"editor":"boolean","default":false},"height":{"editor":"int","default":640,"min":480,"max":2400},"$preview":{"width":960,"height":640}}'>
+class Component extends DCLogic {
+  componentWillUnmount() { clearTimeout(this._t); clearTimeout(this._t2); }
+  s(k, d) { const st = this.state || {}; return st[k] !== undefined ? st[k] : d; }
+
+  toggleTunnel(id) {
+    const active = this.s('active', 'ams-01');
+    const status = this.s('status', this.props.status || 'connected');
+    const cur = id === active ? status : 'idle';
+    clearTimeout(this._t);
+    if (cur === 'connected') {
+      this.setState({ active: id, status: 'disconnecting', selected: id });
+      this._t = setTimeout(() => this.setState({ status: 'idle' }), 900);
+    } else if (cur === 'connecting') {
+      this.setState({ active: id, status: 'idle' });
+    } else if (cur !== 'disconnecting') {
+      this.setState({ active: id, status: 'connecting', selected: id });
+      this._t = setTimeout(() => {
+        this.setState({ status: 'connected', toast: id });
+        clearTimeout(this._t2);
+        this._t2 = setTimeout(() => this.setState({ toast: null }), 3500);
+      }, 1700);
+    }
+  }
+
+  renderVals() {
+    const p = this.props;
+    const theme = this.s('theme', p.theme || 'dark');
+    const T = {
+      dark: { win: '#1A1C20', list: '#1F2126', content: '#23262B', card: '#2A2D33', card2: '#33363D', border: '#3C3F47', borderSoft: '#31343A', frame: '#44474F', text: '#F2F3F5', text2: '#B6BAC2', text3: '#9EA3AC',
+        green: '#3DD68C', greenSoft: 'rgba(61,214,140,0.13)', yellow: '#F5B544', yellowSoft: 'rgba(245,181,68,0.13)', red: '#FF6166', redSoft: 'rgba(255,97,102,0.12)', redBorder: 'rgba(255,97,102,0.35)', gray: '#9EA3AC', graySoft: 'rgba(158,163,172,0.12)',
+        danger: '#E5484D', scrim: 'rgba(6,7,10,0.62)', shadow: '0 16px 48px rgba(0,0,0,0.5), 0 2px 8px rgba(0,0,0,0.35)', up: '#C9CCD2', offTrack: '#686C75', rowSel: '#30333A', rowSelBorder: '#43464E', logWarn: 'rgba(245,181,68,0.07)', logErr: 'rgba(255,97,102,0.08)' },
+      light: { win: '#E9EAEB', list: '#F6F6F6', content: '#FAFAFA', card: '#FFFFFF', card2: '#F2F2F2', border: '#E1E2E2', borderSoft: '#ECECEC', frame: '#CECECD', text: '#212529', text2: '#3E4245', text3: '#6B6B6A',
+        green: '#0F8A48', greenSoft: 'rgba(15,138,72,0.10)', yellow: '#A36200', yellowSoft: 'rgba(214,140,0,0.12)', red: '#D2343B', redSoft: 'rgba(210,52,59,0.07)', redBorder: 'rgba(210,52,59,0.30)', gray: '#6B6B6A', graySoft: 'rgba(107,107,106,0.10)',
+        danger: '#D2343B', scrim: 'rgba(33,37,41,0.38)', shadow: '0 16px 48px rgba(33,37,41,0.16), 0 2px 8px rgba(33,37,41,0.08)', up: '#3A3A39', offTrack: '#8C8C8B', rowSel: '#FFFFFF', rowSelBorder: '#E1E2E2', logWarn: 'rgba(214,140,0,0.07)', logErr: 'rgba(210,52,59,0.06)' }
+    };
+    const A = {
+      brand: { dark: ['#3DA5FF', '#0077D9', 'rgba(0,140,255,0.16)'], light: ['#0070CC', '#0077D9', 'rgba(0,140,255,0.10)'] },
+      graphite: { dark: ['#E3E5E8', '#4A4E57', 'rgba(255,255,255,0.08)'], light: ['#3A3A39', '#3A3A39', 'rgba(58,58,57,0.08)'] }
+    };
+    const acc = (A[p.accent] || A.brand)[theme] || A.brand.dark;
+    const c = Object.assign({}, T[theme] || T.dark, { accent: acc[0], accentBtn: acc[1], accentSoft: acc[2] });
+
+    const narrow = !!p.narrow && p.narrow !== 'false';
+    const H = parseInt(p.height, 10) || (narrow ? 480 : 640);
+    const screen = this.s('screen', p.screen || 'tunnels');
+    const overlay = this.s('overlay', p.overlay || 'none');
+    const status = this.s('status', p.status || 'connected');
+    const active = this.s('active', 'ams-01');
+    const selected = this.s('selected', 'ams-01');
+    const query = this.s('query', '');
+    const multi = overlay === 'multiselect';
+
+    const D = [
+      { id: 'ams-01', type: 'full', endpoint: '203.0.113.24:51820', addr: '10.8.0.12/32' },
+      { id: 'fra-home', type: 'partial', endpoint: '198.51.100.7:443', addr: '10.66.0.4/32' },
+      { id: 'office-msk', type: 'partial', endpoint: 'vpn.office.example:51820', addr: '172.20.1.37/32' },
+      { id: 'hel-backup', type: 'full', endpoint: '192.0.2.181:51820', addr: '10.9.0.3/32' },
+      { id: 'nyc-stream', type: 'full', endpoint: '203.0.113.90:8443', addr: '10.12.0.8/32' },
+      { id: 'tokyo-02', type: 'full', endpoint: '198.51.100.212:51820', addr: '10.14.0.2/32' },
+      { id: 'warsaw-split', type: 'partial', endpoint: '192.0.2.64:51820', addr: '10.30.0.5/32' },
+      { id: 'ist-test', type: 'partial', endpoint: '203.0.113.150:3478', addr: '10.40.0.9/32' }
+    ];
+    const typeLabel = (t) => t === 'full' ? 'Полный маршрут' : 'Частичный';
+    const stColor = (s) => s === 'connected' ? c.green : (s === 'connecting' || s === 'disconnecting') ? c.yellow : s === 'error' ? c.red : c.gray;
+    const stSoft = (s) => s === 'connected' ? c.greenSoft : (s === 'connecting' || s === 'disconnecting') ? c.yellowSoft : s === 'error' ? c.redSoft : c.graySoft;
+    const subFor = (t, s) => s === 'connected' ? 'Активен · 00:42:17' : s === 'connecting' ? 'Подключение…' : s === 'disconnecting' ? 'Отключение…' : s === 'error' ? 'Ошибка подключения' : typeLabel(t.type);
+    const checked = { 'ams-01': true, 'hel-backup': true, 'ist-test': true };
+
+    const tunnels = D.filter((t) => !query || t.id.toLowerCase().indexOf(query.toLowerCase()) >= 0).map((t) => {
+      const ts = t.id === active ? status : 'idle';
+      const on = ts === 'connected' || ts === 'connecting';
+      const isSel = t.id === selected;
+      const ck = multi && !!checked[t.id];
+      return {
+        id: t.id, sub: subFor(t, ts), subColor: ts === 'idle' ? c.text3 : stColor(ts),
+        dot: stColor(ts), dotHalo: ts === 'idle' ? 'transparent' : stSoft(ts),
+        bg: isSel && !multi ? c.rowSel : (ck ? c.accentSoft : 'transparent'), border: isSel && !multi ? c.rowSelBorder : 'transparent',
+        on: on ? 'true' : 'false', trackBg: on ? (ts === 'connecting' ? c.yellow : c.accentBtn) : 'transparent', trackBorder: on ? (ts === 'connecting' ? c.yellow : c.accentBtn) : c.offTrack,
+        knob: on ? '#FFFFFF' : c.offTrack, knobX: on ? '19px' : '3px',
+        checked: ck ? 'true' : 'false', cbBg: ck ? c.accentBtn : 'transparent', cbBorder: ck ? c.accentBtn : c.offTrack, cbOpacity: ck ? 1 : 0,
+        pick: () => this.setState({ selected: t.id }),
+        toggle: () => this.toggleTunnel(t.id)
+      };
+    });
+
+    const selD = D.find((t) => t.id === selected) || D[0];
+    const ss = selD.id === active ? status : 'idle';
+    const busy = ss === 'connecting' || ss === 'disconnecting';
+    const live = ss === 'connected';
+    const META = {
+      idle: { label: 'Неактивен', sub: 'Нажмите кнопку, чтобы подключиться', action: 'Подключить' },
+      connecting: { label: 'Подключение…', sub: 'Handshake с ' + selD.endpoint.split(':')[0] + ' · попытка 2 из 20', action: 'Отменить подключение' },
+      connected: { label: 'Активен', sub: 'Весь трафик идёт через туннель · kill-switch включён', action: 'Отключить' },
+      disconnecting: { label: 'Отключение…', sub: 'Закрываем туннель и восстанавливаем маршруты', action: 'Отключение' },
+      error: { label: 'Ошибка подключения', sub: 'Handshake не завершён · 19:41:06', action: 'Повторить подключение' }
+    };
+    const st = Object.assign({}, META[ss], { color: stColor(ss), soft: stSoft(ss), ring: ss === 'idle' ? c.border : stColor(ss), halo: live ? '6px' : '0px' });
+
+    // graph
+    const W = 600, GH = 72, max = 64;
+    const down = [], up = [];
+    for (let i = 0; i < 60; i++) {
+      down.push(36 + 9 * Math.sin(i / 4.3) + 5 * Math.sin(i / 1.6 + 1) + (i > 46 ? (i - 46) * 0.9 : 0));
+      up.push(5.5 + 1.6 * Math.sin(i / 2.7) + 0.8 * Math.sin(i / 1.3));
+    }
+    const pt = (v, i) => (i / 59 * W).toFixed(1) + ',' + (GH - 3 - v / max * (GH - 8)).toFixed(1);
+    const downPts = down.map(pt).join(' ');
+    const upPts = up.map(pt).join(' ');
+
+    const ifaceRows = [
+      { label: 'Публичный ключ', value: 'vQ3m9F2kTzL8rB1xWc7NhY4pJd0sGeUaKo6iMfRtXlE=', mono: true, copy: true },
+      { label: 'Порт прослушивания', value: '51274', mono: true },
+      { label: 'MTU', value: '1280', mono: true },
+      { label: 'Адреса', value: selD.addr + ', fd42:42:42::12/128', mono: true },
+      { label: 'DNS-серверы', value: '1.1.1.1, 1.0.0.1', mono: true },
+      { label: 'Таблица маршрутизации', value: 'auto', mono: true }
+    ].map((r, i) => Object.assign(r, { font: r.mono ? "'JetBrains Mono', Consolas, monospace" : 'inherit', line: i === 0 ? 'transparent' : c.borderSoft, copy: !!r.copy }));
+
+    const obfOpen = this.s('obfOpen', H > 900);
+    const obf = [
+      { label: 'Ключ защиты заголовков', value: '••••••••••••' },
+      { label: 'Доп. паддинг контента', value: '0–64 байт' },
+      { label: 'Мусорные пакеты (Jc · Jmin–Jmax)', value: '4 · 40–70 байт' },
+      { label: 'Случайные трейлеры', value: 'Включены' },
+      { label: 'Отключение cookies', value: 'Нет' },
+      { label: 'Rekey after time', value: '120 с' },
+      { label: 'Rekey timeout', value: '5 с' },
+      { label: 'Reject after time', value: '180 с' },
+      { label: 'Keepalive timeout', value: '10 с' },
+      { label: 'Макс. попыток handshake', value: '20' }
+    ];
+
+    const showPsk = this.s('showPsk', {});
+    const peers = [
+      { k: 1, title: 'Пир 1', endpoint: selD.endpoint, key: 'Hk2LpZ8nQw5rT1yUe7oI3aSdF9gJcVbX4mN0tR6uWqE=', psk: 'p7XcR2vN9bQ4tL1mZ8kW3yH6sD0fG5jA2eU7iO4rTnE=', allowed: selD.type === 'full' ? '0.0.0.0/0, ::/0' : '10.0.0.0/8, 172.16.0.0/12', keepalive: 'каждые 25 с', hs: live ? '23 с назад' : 'нет данных', traffic: live ? '↓ 1,84 ГиБ · ↑ 212,6 МиБ' : '—' },
+      { k: 2, title: 'Пир 2', endpoint: 'relay-02.example.net:443', key: 'Rb9wE4tY1uI7oP3aS6dF0gH2jK5lZ8xC4vB1nM7qWeA=', psk: 'нет', allowed: '10.20.0.0/16', keepalive: 'выкл.', hs: live ? '1 мин 12 с назад' : 'нет данных', traffic: live ? '↓ 38,1 МиБ · ↑ 4,2 МиБ' : '—' }
+    ].map((pr) => {
+      const open = !!showPsk[pr.k];
+      const has = pr.psk !== 'нет';
+      return Object.assign(pr, {
+        dot: live ? c.green : c.gray,
+        psk: has ? (open ? pr.psk : '••••••••••••••••••••') : 'не задан',
+        pskSpacing: has && !open ? '0.08em' : 'normal',
+        pskAction: open ? 'Скрыть' : 'Показать',
+        togglePsk: () => this.setState({ showPsk: Object.assign({}, showPsk, { [pr.k]: !open }) })
+      });
+    });
+
+    // nav
+    const NAV = [
+      { id: 'tunnels', label: 'Туннели', icon: 'M8 1.5l5.5 2v4.2c0 3.2-2.3 5.7-5.5 6.8-3.2-1.1-5.5-3.6-5.5-6.8V3.5z' },
+      { id: 'log', label: 'Журнал', icon: 'M3 3.5h10M3 6.5h10M3 9.5h10M3 12.5h6' },
+      { id: 'settings', label: 'Настройки', icon: 'M2.5 4.5h6M11.5 4.5h2M2.5 11.5h2M7.5 11.5h6M10 3v3M6 10v3' },
+      { id: 'about', label: 'О программе', icon: 'M8 14.5A6.5 6.5 0 1 0 8 1.5a6.5 6.5 0 0 0 0 13zM8 7.2v4M8 4.8v.1' }
+    ];
+    const curNav = screen === 'empty' ? 'tunnels' : screen;
+    const nav = NAV.map((n) => {
+      const on = n.id === curNav;
+      return { label: n.label, icon: n.icon, bg: on ? c.card2 : 'transparent', color: on ? c.text : c.text2, iconColor: on ? c.accent : c.text2, weight: on ? 600 : 400,
+        go: () => this.setState({ screen: n.id, overlay: 'none' }) };
+    });
+
+    // log
+    const LOG = [
+      ['19:02:11.104', 'info', 'Starting NET PORTAL/1.0.3 (Windows 10.0.26100; amd64)'],
+      ['19:02:11.106', 'info', 'Watching network interfaces'],
+      ['19:02:11.131', 'info', '[ams-01] Resolving DNS names'],
+      ['19:02:11.214', 'info', '[ams-01] Creating network adapter'],
+      ['19:02:11.220', 'info', '[ams-01] Using existing driver Wintun 0.14.1'],
+      ['19:02:11.402', 'info', '[ams-01] Enabling firewall rules (kill-switch)'],
+      ['19:02:11.430', 'info', '[ams-01] Interface created'],
+      ['19:02:11.433', 'info', '[ams-01] Applying obfuscation: Jc=4 Jmin=40 Jmax=70 S1=52 S2=18'],
+      ['19:02:11.441', 'info', '[ams-01] Setting device v4 addresses'],
+      ['19:02:11.457', 'info', '[ams-01] Setting device v6 addresses'],
+      ['19:02:11.512', 'info', '[ams-01] Monitoring MTU of default v4 routes'],
+      ['19:02:11.588', 'info', '[ams-01] Startup complete'],
+      ['19:02:11.590', 'info', '[ams-01] peer(Hk2L…WqE) Sending handshake initiation'],
+      ['19:02:11.648', 'info', '[ams-01] peer(Hk2L…WqE) Received handshake response'],
+      ['19:02:11.649', 'info', '[ams-01] peer(Hk2L…WqE) Keypair 1 created'],
+      ['19:02:16.611', 'warn', '[ams-01] peer(Rb9w…WeA) Handshake did not complete after 5 seconds, retrying (try 2)'],
+      ['19:02:17.704', 'info', '[ams-01] peer(Rb9w…WeA) Received handshake response'],
+      ['19:04:11.651', 'info', '[ams-01] peer(Hk2L…WqE) Sending keepalive packet'],
+      ['19:12:44.019', 'error', '[hel-backup] Unable to resolve endpoint: no such host'],
+      ['19:14:11.655', 'info', '[ams-01] peer(Hk2L…WqE) Retrying handshake because we stopped hearing back after 15 seconds'],
+      ['19:14:11.712', 'info', '[ams-01] peer(Hk2L…WqE) Keypair 2 created']
+    ];
+    const lvl = this.s('lvl', 'all');
+    const lq = this.s('logQuery', '');
+    const LV = { info: 'ИНФО', warn: 'ВНИМ.', error: 'ОШИБКА' };
+    const logs = LOG.filter((l) => (lvl === 'all' || l[1] === lvl) && (!lq || l[2].toLowerCase().indexOf(lq.toLowerCase()) >= 0)).map((l) => ({
+      t: l[0], level: LV[l[1]], m: l[2],
+      levelColor: l[1] === 'warn' ? c.yellow : l[1] === 'error' ? c.red : c.text3,
+      color: l[1] === 'error' ? c.red : c.text,
+      bg: l[1] === 'warn' ? c.logWarn : l[1] === 'error' ? c.logErr : 'transparent'
+    }));
+    const seg = (on) => ({ bg: on ? c.card : 'transparent', color: on ? c.text : c.text2, shadow: on ? '0 1px 2px rgba(0,0,0,0.18)' : 'none', on: on ? 'true' : 'false' });
+    const levels = [['all', 'Все'], ['info', 'Инфо'], ['warn', 'Предупреждения'], ['error', 'Ошибки']].map((x) => Object.assign({ label: x[1], pick: () => this.setState({ lvl: x[0] }) }, seg(lvl === x[0])));
+
+    // settings
+    const themePick = this.s('themeChoice', theme);
+    const themes = [['dark', 'Тёмная'], ['light', 'Светлая'], ['system', 'Как в системе']].map((x) => Object.assign({ label: x[1], pick: () => this.setState({ themeChoice: x[0], theme: x[0] === 'system' ? theme : x[0] }) }, seg(themePick === x[0])));
+    const sw = this.s('sw', { auto: true, tray: true, autoconn: true, notify: true, errors: true });
+    const SET = [
+      ['auto', 'Автозапуск с Windows', 'Запускать NET PORTAL при входе в систему'],
+      ['tray', 'Запускать свёрнутым в трей', 'Окно не появится при автозапуске'],
+      ['autoconn', 'Автоподключение', 'Подключаться к выбранному туннелю при запуске'],
+      ['notify', 'Уведомления о подключении', 'Показывать, когда туннель подключён или отключён'],
+      ['errors', 'Уведомления об ошибках', 'Сообщать о сбоях handshake и импорта']
+    ];
+    const setRows = SET.map((x, i) => {
+      const on = !!sw[x[0]];
+      return { label: x[1], hint: x[2], line: i === 0 ? 'transparent' : c.borderSoft, hasSelect: x[0] === 'autoconn', selectColor: on ? c.text : c.text3,
+        on: on ? 'true' : 'false', trackBg: on ? c.accentBtn : 'transparent', trackBorder: on ? c.accentBtn : c.offTrack, knob: on ? '#FFFFFF' : c.offTrack, knobX: on ? '23px' : '3px',
+        toggle: () => this.setState({ sw: Object.assign({}, sw, { [x[0]]: !on }) }) };
+    });
+
+    // about
+    const updState = this.s('upd', p.update || 'available');
+    const upd = updState === 'downloading'
+      ? { title: 'Устанавливаем версию 1.0.4', sub: 'Туннели переподключатся автоматически после перезапуска', idle: false, busy: true }
+      : { title: 'Доступна версия 1.0.4', sub: 'Исправления стабильности и обновлённый драйвер Wintun', idle: true, busy: false };
+    const versions = [
+      ['Приложение', '1.0.3'], ['Wintun', '0.14.1'], ['Go', '1.23.4'], ['ОС', 'Windows 11 Pro 24H2 (26100.2314)'], ['Архитектура', 'amd64']
+    ].map((v, i) => ({ label: v[0], value: v[1], line: i === 0 ? 'transparent' : c.borderSoft }));
+
+    // add menu
+    const addItems = [
+      { label: 'Импорт из файла…', hint: '.conf или .zip с несколькими туннелями', kbd: 'Ctrl+O', icon: 'M2 4.5a1 1 0 0 1 1-1h3.5l1.5 1.5h5a1 1 0 0 1 1 1v6.5a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1z' },
+      { label: 'Вставить из буфера', hint: 'Текст конфигурации [Interface]…', kbd: 'Ctrl+V', icon: 'M5.5 2.5h5v2h-5zM5.5 3.5H4a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-9a1 1 0 0 0-1-1h-1.5' },
+      { label: 'Сканировать QR-код', hint: 'С экрана или из изображения', kbd: '', icon: 'M2.5 2.5h4v4h-4zM9.5 2.5h4v4h-4zM2.5 9.5h4v4h-4zM9.5 9.5h1.5v1.5M13.5 9.5v1.5M9.5 13.5h4' },
+      { label: 'Создать пустой туннель', hint: 'Сгенерировать новую пару ключей', kbd: 'Ctrl+N', icon: 'M9.5 1.5H4a1 1 0 0 0-1 1v11a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V5zM8 7.5v4M6 9.5h4' }
+    ].map((a, i) => Object.assign(a, { bg: i === 0 ? c.card2 : 'transparent' }));
+
+    // toasts
+    const toastState = this.s('toast', null);
+    const showStaticToasts = !!p.toasts && p.toasts !== 'false' && !this.s('toastsClosed', false);
+    const OK = 'M3.5 8.3l3 2.9 6-6.4';
+    const toastList = showStaticToasts ? [
+      { title: 'Туннель ams-01 подключён', text: 'Внешний IP 203.0.113.24 · handshake 61 мс', color: c.green, soft: c.greenSoft, icon: OK },
+      { title: 'Импортировано 3 туннеля', text: 'fra-home, tokyo-02, warsaw-split', color: c.accent, soft: c.accentSoft, icon: OK },
+      { title: 'Не удалось импортировать hel.conf', text: 'Строка 7: неизвестный ключ «Endpiont»', color: c.red, soft: c.redSoft, icon: 'M8 4v5M8 11.6v.1' }
+    ] : (toastState ? [{ title: 'Туннель ' + toastState + ' подключён', text: 'Внешний IP 203.0.113.24 · handshake 61 мс', color: c.green, soft: c.greenSoft, icon: OK }] : []);
+
+    return {
+      c, st, busy, live, notLive: !live, isError: ss === 'error',
+      rootW: (narrow ? 720 : 960) + 'px', rootH: H + 'px',
+      wide: !narrow, narrow, detPad: narrow ? '16px 20px' : '20px 24px',
+      nav, goAbout: () => this.setState({ screen: 'about', overlay: 'none' }), goLog: () => this.setState({ screen: 'log', overlay: 'none' }),
+      showTunnels: screen === 'tunnels', showEmpty: screen === 'empty', showLog: screen === 'log', showSettings: screen === 'settings', showAbout: screen === 'about',
+      tunnels, tunnelCount: String(D.length), query, onQuery: (e) => this.setState({ query: e.target.value }),
+      multi, notMulti: !multi, toggleMulti: () => this.setState({ overlay: multi ? 'none' : 'multiselect' }),
+      showAdd: overlay === 'addmenu', toggleAdd: () => this.setState({ overlay: overlay === 'addmenu' ? 'none' : 'addmenu' }), addItems,
+      sel: { id: selD.id, endpoint: selD.endpoint, addr: selD.addr, typeLabel: typeLabel(selD.type) }, othersCount: String(D.length - 1),
+      extIp: live ? selD.endpoint.split(':')[0] : '—', extColor: live ? c.text : c.text3,
+      toggleSel: () => this.toggleTunnel(selD.id),
+      rx: live ? '48,2' : '0', tx: live ? '6,1' : '0',
+      downPts, upPts, areaPts: '0,' + GH + ' ' + downPts + ' ' + W + ',' + GH,
+      graphEmpty: busy ? 'Ожидаем первый handshake…' : 'Статистика появится после подключения',
+      rxTotal: live ? '1,84 ГиБ' : '—', txTotal: live ? '212,6 МиБ' : '—', hs: live ? '23 с назад' : '—',
+      ifaceRows, obf, obfOpen, obfRot: obfOpen ? '180deg' : '0deg', obfHint: obfOpen ? '' : '10 параметров',
+      toggleObf: () => this.setState({ obfOpen: !obfOpen }),
+      peers,
+      logs, logCount: String(LOG.length), levels, logQuery: lq, onLogQuery: (e) => this.setState({ logQuery: e.target.value }),
+      themes, setRows,
+      upd, versions, startUpdate: () => this.setState({ upd: 'downloading' }), cancelUpdate: () => this.setState({ upd: 'available' }),
+      showDelete: overlay === 'delete', openDelete: () => this.setState({ overlay: 'delete' }), closeOverlay: () => this.setState({ overlay: 'none' }),
+      showDrop: overlay === 'drop',
+      showToasts: toastList.length > 0, toastList, closeToast: () => this.setState({ toast: null, toastsClosed: true })
+    };
+  }
+}
+</script>
+</body>
+</html>

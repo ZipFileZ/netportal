@@ -17,16 +17,19 @@ import (
 )
 
 /*
- * Generate with:
- *   $ b2sum -l 256 *.msi > list
- *   $ signify -S -e -s release.sec -m list
- *   $ upload ./list.sec
+ * latest.sig is produced by cmd/np-release (compatible with
+ * `signify -S -e`): an untrusted comment line, the base64 signature, then
+ * lines of "<blake2b-256 hex>  <file name>".
  */
 
 type fileList map[string][blake2b.Size256]byte
 
 func readFileList(input []byte) (fileList, error) {
-	publicKeyBytes, err := base64.StdEncoding.DecodeString(releasePublicKeyBase64)
+	return readFileListWithKey(input, ReleasePublicKey)
+}
+
+func readFileListWithKey(input []byte, publicKey string) (fileList, error) {
+	publicKeyBytes, err := base64.StdEncoding.DecodeString(publicKey)
 	if err != nil || len(publicKeyBytes) != ed25519.PublicKeySize+10 || publicKeyBytes[0] != 'E' || publicKeyBytes[1] != 'd' {
 		return nil, errors.New("Invalid public key")
 	}

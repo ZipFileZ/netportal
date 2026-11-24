@@ -1,28 +1,44 @@
-# [AmneziaWG](https://amnezia.org/) for Windows
+# NET PORTAL
 
-This is a fully-featured AmneziaWG client for Windows that uses [Wintun](https://www.wintun.net/). It is the only official and recommended way of using AmneziaWG on Windows.
+VPN-клиент для Windows с обфускацией трафика. Основан на [AmneziaWG для Windows](https://github.com/amnezia-vpn/amneziawg-windows-client), который в свою очередь основан на [WireGuard для Windows](https://git.zx2c4.com/wireguard-windows/).
 
-## Download &amp; Install
+Отличия от AmneziaWG:
 
-If you've come here looking to simply run WireGuard for Windows, [the main download page has links](https://www.wireguard.com/install/). There you will find two things:
+- новый интерфейс на WebView2 (`webui/`): тёмная и светлая тема, график скорости, внешний IP, редактор конфигурации с проверкой ошибок, импорт из файла, буфера обмена и QR-кода, трей-попап, русский и английский языки;
+- собственные имена служб и папки данных (`NetPortalManager`, `C:\Program Files\NetPortal\Data`), поэтому NET PORTAL можно установить рядом с AmneziaWG;
+- обновления из релизов этого репозитория.
 
-- [The WireGuard Installer](https://download.wireguard.com/windows-client/wireguard-installer.exe) &ndash; This selects the most recent version for your architecture, downloads it, checks signatures and hashes, and installs it.
-- [Standalone MSIs](https://download.wireguard.com/windows-client/) &ndash; These are for system admins who wish to deploy the MSIs directly. For most end users, the ordinary installer takes care of downloading these automatically.
+## Установка
 
-## Documentation
+1. Скачайте `netportal-<архитектура>-<версия>.exe` из [последнего релиза](https://github.com/ZipFileZ/netportal/releases/latest) (`amd64` — для большинства компьютеров).
+2. Положите его в постоянную папку, например `C:\Program Files\NetPortal\netportal.exe`, и запустите. Программа установит свою службу и появится в трее.
 
-In addition to this [`README.md`](README.md), the following documents are also available:
+Нужна Windows 10/11 с [WebView2 Runtime](https://developer.microsoft.com/microsoft-edge/webview2/) (в Windows 11 он уже есть).
 
-- [`adminregistry.md`](docs/adminregistry.md) &ndash; A list of registry keys settable by the system administrator for changing the behavior of the application.
-- [`attacksurface.md`](docs/attacksurface.md) &ndash; A discussion of the various components from a security perspective, so that future auditors of this code have a head start in assessing its security design.
-- [`buildrun.md`](docs/buildrun.md) &ndash; Instructions on building, localizing, running, and developing for this repository.
-- [`enterprise.md`](docs/enterprise.md) &ndash; A summary of various features and tips for making the application usable in enterprise settings.
-- [`netquirk.md`](docs/netquirk.md) &ndash; A description of various networking quirks and "kill-switch" semantics.
-- [`userregistry.md`](docs/userregistry.md) &ndash; A list of registry keys settable by the user for changing the behavior of the application.
+Удаление: `netportal.exe /uninstallmanagerservice` от имени администратора, затем удалите папку программы.
+
+Посмотреть интерфейс без установки: `netportal.exe /uidemo` — демо-режим с ненастоящими туннелями, ничего не устанавливает.
+
+## Сборка
+
+```
+build.bat
+```
+
+Скрипт скачивает Go и компилятор в `.deps` и собирает `amd64`, `x86` и `arm64`. Подробнее — [`docs/buildrun.md`](docs/buildrun.md).
+
+## Выпуск обновления
+
+Программа раз в час проверяет `latest.sig` в последнем релизе, сверяет его подпись с ключом в [`updater/constants.go`](updater/constants.go), скачивает новый exe, проверяет хэш и заменяет себя, не разрывая туннели.
+
+1. Увеличьте `Number` в [`version/version.go`](version/version.go).
+2. `build.bat`
+3. `go run ./cmd/np-release sign` — файлы появятся в `release\v<версия>`.
+4. Создайте релиз с тегом `v<версия>` и загрузите туда все файлы из этой папки.
+
+Секретный ключ подписи хранится вне репозитория (`%USERPROFILE%\.netportal\release.key`). Без него выпустить обновление нельзя.
 
 ## License
-
-This repository is MIT-licensed.
 
 ```text
 Copyright (C) 2018-2022 WireGuard LLC. All Rights Reserved.

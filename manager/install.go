@@ -48,7 +48,7 @@ func InstallManager() error {
 
 	// TODO: Do we want to bail if executable isn't being run from the right location?
 
-	serviceName := "AmneziaWGManager"
+	serviceName := "NetPortalManager"
 	service, err := m.OpenService(serviceName)
 	if err == nil {
 		status, err := service.Query()
@@ -85,7 +85,7 @@ func InstallManager() error {
 		ServiceType:  windows.SERVICE_WIN32_OWN_PROCESS,
 		StartType:    mgr.StartAutomatic,
 		ErrorControl: mgr.ErrorNormal,
-		DisplayName:  "AmneziaWG Manager",
+		DisplayName:  "NET PORTAL Manager",
 	}
 
 	service, err = m.CreateService(serviceName, path, config, "/managerservice")
@@ -101,7 +101,7 @@ func UninstallManager() error {
 	if err != nil {
 		return err
 	}
-	serviceName := "AmneziaWGManager"
+	serviceName := "NetPortalManager"
 	service, err := m.OpenService(serviceName)
 	if err != nil {
 		return err
@@ -165,7 +165,7 @@ func InstallTunnel(configPath string) error {
 		StartType:    mgr.StartAutomatic,
 		ErrorControl: mgr.ErrorNormal,
 		Dependencies: []string{"Nsi", "TcpIp"},
-		DisplayName:  "AmneziaWG Tunnel: " + name,
+		DisplayName:  "NET PORTAL Tunnel: " + name,
 		SidType:      windows.SERVICE_SID_TYPE_UNRESTRICTED,
 	}
 	service, err = m.CreateService(serviceName, path, config, "/tunnelservice", configPath)
@@ -240,4 +240,35 @@ func changeTunnelServiceConfigFilePath(name, oldPath, newPath string) {
 	args[2] = newPath
 	config.BinaryPathName = windows.ComposeCommandLine(args)
 	err = service.UpdateConfig(config)
+}
+
+// RestartManager stops the manager service and starts it again. The updater
+// runs it from the freshly installed executable, so the manager comes back
+// as the new version. Tunnel services are separate and keep running.
+func RestartManager() error {
+	m, err := serviceManager()
+	if err != nil {
+		return err
+	}
+	service, err := m.OpenService("NetPortalManager")
+	if err != nil {
+		return err
+	}
+	defer service.Close()
+	// Let the old manager finish reporting the update to the UI first.
+	time.Sleep(2 * time.Second)
+	if _, err := service.Control(svc.Stop); err != nil && err != windows.ERROR_SERVICE_NOT_ACTIVE {
+		log.Printf("Unable to stop manager: %v", err)
+	}
+	for i := 0; i < 120; i++ {
+		status, err := service.Query()
+		if err != nil {
+			return err
+		}
+		if status.State == svc.Stopped {
+			break
+		}
+		time.Sleep(time.Second / 2)
+	}
+	return service.Start()
 }

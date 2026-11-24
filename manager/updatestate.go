@@ -33,12 +33,14 @@ func jitterSleep(min, max time.Duration) {
 }
 
 func checkForUpdates() {
-	if !version.IsRunningOfficialVersion() {
-		log.Println("Build is not official, so updates are disabled")
+	updater.CleanupPreviousUpdate()
+	if !updater.Enabled() {
+		log.Println("No update source is configured, so updates are disabled")
 		updateState = UpdateStateUpdatesDisabledUnofficialBuild
 		IPCServerNotifyUpdateFound(updateState)
 		return
 	}
+	log.Printf("Checking for updates of version %s at github.com/%s", version.Number, updater.UpdateRepo)
 	if services.StartedAtBoot() {
 		jitterSleep(time.Minute*2, time.Minute*5)
 	}

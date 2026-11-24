@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Редактор туннеля</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div style="width: 960px; height: 640px; box-sizing: border-box; display: flex; flex-direction: column; background: {{c.win}}; color: {{c.text}}; font-family: 'Segoe UI Variable Text', 'Segoe UI Variable', Inter, system-ui, sans-serif; font-size: 13px; line-height: 20px; border: 1px solid {{c.frame}}; border-radius: 8px; overflow: hidden">
+
+<div style="height: 40px; flex: none; display: flex; align-items: center">
+<div style="flex: 1; display: flex; align-items: center; gap: 10px; padding-left: 14px">
+<svg aria-hidden="true" width="16" height="16" viewBox="0 0 16 16"><rect width="16" height="16" rx="4" fill="{{c.accentBtn}}"></rect><path d="M3.5 9.6l2.2-3.2 2.3 3.2 2.3-3.2 2.2 3.2" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+<span style="font-size: 12px; color: {{c.text2}}">NET PORTAL — редактирование</span>
+</div>
+<button aria-label="Свернуть" style="width: 46px; height: 40px; border: 0; padding: 0; background: transparent; color: {{c.text2}}; display: flex; align-items: center; justify-content: center"><svg aria-hidden="true" width="10" height="10" viewBox="0 0 10 10"><path d="M0 5h10" stroke="currentColor" stroke-width="1"></path></svg></button>
+<button aria-label="Развернуть" style="width: 46px; height: 40px; border: 0; padding: 0; background: transparent; color: {{c.text2}}; display: flex; align-items: center; justify-content: center"><svg aria-hidden="true" width="10" height="10" viewBox="0 0 10 10"><rect x="0.5" y="0.5" width="9" height="9" rx="1.5" fill="none" stroke="currentColor" stroke-width="1"></rect></svg></button>
+<button aria-label="Закрыть" style="width: 46px; height: 40px; border: 0; padding: 0; background: transparent; color: {{c.text2}}; display: flex; align-items: center; justify-content: center"><svg aria-hidden="true" width="10" height="10" viewBox="0 0 10 10"><path d="M0.5 0.5l9 9M9.5 0.5l-9 9" stroke="currentColor" stroke-width="1"></path></svg></button>
+</div>
+
+<div style="flex: 1; min-height: 0; display: flex; flex-direction: column; background: {{c.content}}; border-top: 1px solid {{c.borderSoft}}">
+
+<div style="height: 56px; flex: none; display: flex; align-items: center; gap: 12px; padding: 0 24px; border-bottom: 1px solid {{c.borderSoft}}">
+<a href="Main.dc.html" aria-label="Назад к туннелям" style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 6px; border: 1px solid {{c.border}}; background: {{c.card2}}; color: {{c.text}}"><svg aria-hidden="true" width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3L5 8l5 5"></path></svg></a>
+<div style="flex: 1">
+<div style="font-size: 11px; line-height: 14px; color: {{c.text3}}">Туннели / ams-01</div>
+<h1 style="margin: 0; font-size: 17px; line-height: 22px; font-weight: 600">Редактирование туннеля</h1>
+</div>
+<span style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: {{c.text2}}"><span style="width: 6px; height: 6px; border-radius: 50%; background: {{c.yellow}}"></span>Есть несохранённые изменения</span>
+</div>
+
+<div style="flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 14px; padding: 16px 24px">
+
+<div style="display: grid; grid-template-columns: 280px minmax(0, 1fr); gap: 16px">
+<div style="display: flex; flex-direction: column; gap: 4px">
+<label for="tun-name" style="font-size: 12px; line-height: 16px; font-weight: 500; color: {{c.text2}}">Имя</label>
+<input id="tun-name" value="{{name}}" onChange="{{onName}}" aria-invalid="{{nameInvalid}}" aria-describedby="tun-name-msg" style="height: 34px; box-sizing: border-box; padding: 0 10px; border-radius: 6px; border: 1px solid {{nameBorder}}; box-shadow: {{nameRing}}; background: {{c.card}}; color: {{c.text}}; font: inherit; font-size: 13px; outline: none">
+<span id="tun-name-msg" style="display: flex; align-items: center; gap: 6px; font-size: 12px; line-height: 16px; color: {{nameMsgColor}}">{{nameMsg}}</span>
+</div>
+<div style="display: flex; flex-direction: column; gap: 4px; min-width: 0">
+<span style="font-size: 12px; line-height: 16px; font-weight: 500; color: {{c.text2}}">Публичный ключ</span>
+<div style="height: 34px; box-sizing: border-box; display: flex; align-items: center; gap: 8px; padding: 0 4px 0 10px; border-radius: 6px; border: 1px solid {{c.borderSoft}}; background: {{c.card2}}">
+<span style="flex: 1; min-width: 0; font-family: 'JetBrains Mono', Consolas, monospace; font-size: 12px; color: {{c.text2}}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">vQ3m9F2kTzL8rB1xWc7NhY4pJd0sGeUaKo6iMfRtXlE=</span>
+<button aria-label="Копировать публичный ключ" style="width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; border: 0; border-radius: 4px; background: transparent; color: {{c.text2}}; padding: 0"><svg aria-hidden="true" width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="5.5" y="5.5" width="8" height="8" rx="1.5"></rect><path d="M10.5 3.5V3a1 1 0 0 0-1-1H3a1 1 0 0 0-1 1v6.5a1 1 0 0 0 1 1h.5"></path></svg></button>
+</div>
+<span style="font-size: 12px; line-height: 16px; color: {{c.text3}}">Вычисляется из PrivateKey, только для чтения</span>
+</div>
+</div>
+
+<div style="flex: 1; min-height: 0; display: flex; flex-direction: column; border-radius: 10px; border: 1px solid {{c.border}}; background: {{c.code}}; overflow: hidden">
+<div style="height: 32px; flex: none; display: flex; align-items: center; gap: 12px; padding: 0 12px; border-bottom: 1px solid {{c.borderSoft}}; font-size: 11px; color: {{c.text3}}">
+<span style="font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase">Конфигурация</span>
+<span>INI · UTF-8 · CRLF</span>
+<span style="flex: 1"></span>
+<span style="font-family: 'JetBrains Mono', Consolas, monospace">Стр. 4, стб. 3</span>
+</div>
+<div style="flex: 1; min-height: 0; overflow: hidden; display: flex; padding: 6px 0; font-family: 'JetBrains Mono', Consolas, monospace; font-size: 12.5px; line-height: 20px">
+<div style="flex: 1; min-width: 0">
+<sc-for list="{{lines}}" as="ln" hint-placeholder-count="12">
+<div style="display: flex; background: {{ln.bg}}">
+<span style="width: 44px; flex: none; text-align: right; padding-right: 14px; box-sizing: border-box; color: {{ln.numColor}}; user-select: none">{{ln.n}}</span>
+<span style="width: 3px; flex: none; background: {{ln.mark}}"></span>
+<span style="padding-left: 12px; white-space: pre; overflow: hidden">
+<sc-for list="{{ln.toks}}" as="tk" hint-placeholder-count="3"><span style="color: {{tk.color}}; font-style: {{tk.style}}; text-decoration: {{tk.deco}}">{{tk.t}}</span></sc-for>
+</span>
+</div>
+</sc-for>
+</div>
+<div aria-hidden="true" style="width: 10px; flex: none; position: relative"><span style="position: absolute; right: 3px; top: 4px; width: 4px; height: 96px; border-radius: 2px; background: {{c.border}}"></span><span style="position: absolute; right: 3px; top: 22px; width: 4px; height: 3px; background: {{c.red}}; opacity: {{errOpacity}}"></span></div>
+</div>
+<sc-if value="{{error}}" hint-placeholder-val="{{ true }}">
+<div role="alert" style="height: 32px; flex: none; display: flex; align-items: center; gap: 8px; padding: 0 12px; border-top: 1px solid {{c.redBorder}}; background: {{c.redSoft}}; font-size: 12px; color: {{c.text}}">
+<svg aria-hidden="true" width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="{{c.red}}" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="6.2"></circle><path d="M8 4.8v3.6M8 10.9v.1"></path></svg>
+<span><span style="font-weight: 600; color: {{c.red}}">Строка 4:</span> неизвестный ключ <span style="font-family: 'JetBrains Mono', Consolas, monospace">Adress</span>. Возможно, вы имели в виду <span style="font-family: 'JetBrains Mono', Consolas, monospace">Address</span>?</span>
+<span style="flex: 1"></span>
+<button style="height: 24px; padding: 0 8px; border-radius: 4px; border: 1px solid {{c.border}}; background: {{c.card}}; color: {{c.text}}; font: inherit; font-size: 11px">Исправить</button>
+</div>
+</sc-if>
+</div>
+
+<div style="display: flex; align-items: flex-start; gap: 10px">
+<button role="checkbox" aria-checked="{{ksOn}}" aria-labelledby="ks-label" onClick="{{toggleKs}}" style="width: 18px; height: 18px; flex: none; margin-top: 1px; padding: 0; box-sizing: border-box; border-radius: 4px; border: 1.5px solid {{ksBorder}}; background: {{ksBg}}; color: #fff; display: flex; align-items: center; justify-content: center"><svg aria-hidden="true" width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="opacity: {{ksOpacity}}"><path d="M2.5 6.2l2.4 2.3 4.6-5"></path></svg></button>
+<div>
+<div id="ks-label" style="font-weight: 500">Блокировать трафик вне туннеля (kill-switch)</div>
+<div style="font-size: 12px; line-height: 16px; color: {{c.text3}}">Если туннель упадёт, Windows не отправит ни одного пакета в обход VPN. Доступно только при полном маршруте (AllowedIPs = 0.0.0.0/0).</div>
+</div>
+</div>
+
+</div>
+
+<div style="height: 60px; flex: none; display: flex; align-items: center; gap: 8px; padding: 0 24px; border-top: 1px solid {{c.borderSoft}}; background: {{c.list}}">
+<span style="flex: 1; font-size: 12px; color: {{c.text3}}"><span style="font-family: 'JetBrains Mono', Consolas, monospace">Ctrl+S</span> — сохранить · <span style="font-family: 'JetBrains Mono', Consolas, monospace">Esc</span> — отмена</span>
+<a href="Main.dc.html" style="height: 32px; display: inline-flex; align-items: center; padding: 0 16px; border-radius: 6px; border: 1px solid {{c.border}}; background: {{c.card2}}; color: {{c.text}}; text-decoration: none; font-size: 13px">Отмена</a>
+<button aria-disabled="{{error}}" style="height: 32px; padding: 0 18px; border: 0; border-radius: 6px; background: {{c.accentBtn}}; color: #fff; font: inherit; font-size: 13px; font-weight: 600; opacity: {{saveOpacity}}">Сохранить</button>
+</div>
+
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["dark","light"],"default":"dark"},"error":{"editor":"boolean","default":true},"$preview":{"width":960,"height":640}}'>
+class Component extends DCLogic {
+  s(k, d) { const st = this.state || {}; return st[k] !== undefined ? st[k] : d; }
+  renderVals() {
+    const p = this.props;
+    const theme = p.theme === 'light' ? 'light' : 'dark';
+    const T = {
+      dark: { win: '#1A1C20', list: '#1F2126', content: '#23262B', card: '#2A2D33', card2: '#33363D', code: '#1C1E22', border: '#3C3F47', borderSoft: '#31343A', frame: '#44474F', text: '#F2F3F5', text2: '#B6BAC2', text3: '#9EA3AC',
+        yellow: '#F5B544', red: '#FF6166', redSoft: 'rgba(255,97,102,0.10)', redBorder: 'rgba(255,97,102,0.35)', accent: '#3DA5FF', accentBtn: '#0077D9', accentSoft: 'rgba(0,140,255,0.15)', offTrack: '#686C75',
+        sec: '#7CC2FF', key: '#8FD3C3', val: '#E3E4EA', num: '#F0A35E', eq: '#7A7E87', curLine: 'rgba(255,255,255,0.03)' },
+      light: { win: '#E9EAEB', list: '#F6F6F6', content: '#FAFAFA', card: '#FFFFFF', card2: '#F2F2F2', code: '#FFFFFF', border: '#E1E2E2', borderSoft: '#ECECEC', frame: '#CECECD', text: '#212529', text2: '#3E4245', text3: '#6B6B6A',
+        yellow: '#A36200', red: '#D2343B', redSoft: 'rgba(210,52,59,0.07)', redBorder: 'rgba(210,52,59,0.30)', accent: '#0070CC', accentBtn: '#0077D9', accentSoft: 'rgba(0,140,255,0.10)', offTrack: '#8C8C8B',
+        sec: '#0070CC', key: '#0B7A68', val: '#212529', num: '#9A4F00', eq: '#9EA3AC', curLine: 'rgba(33,37,41,0.03)' }
+    };
+    const c = T[theme];
+    const error = p.error === undefined ? true : (!!p.error && p.error !== 'false');
+    const name = this.s('name', error ? 'fra-home' : 'ams-01');
+    const ks = this.s('ks', true);
+
+    const SRC = [
+      '# ams-01 — Амстердам, полный маршрут',
+      '[Interface]',
+      'PrivateKey = yA8kN3pQ7wE2rT5uI9oP1aS4dF6gH0jK2lZ5xC8vB3n=',
+      (error ? 'Adress' : 'Address') + ' = 10.8.0.12/32, fd42:42:42::12/128',
+      'DNS = 1.1.1.1, 1.0.0.1',
+      'MTU = 1280',
+      'Jc = 4',
+      'Jmin = 40',
+      'Jmax = 70',
+      'S1 = 52',
+      'S2 = 18',
+      'H1 = 1189405542',
+      'H2 = 3725167803',
+      'H3 = 2416970128',
+      'H4 = 905781264',
+      '',
+      '[Peer]',
+      'PublicKey = Hk2LpZ8nQw5rT1yUe7oI3aSdF9gJcVbX4mN0tR6uWqE=',
+      'PresharedKey = p7XcR2vN9bQ4tL1mZ8kW3yH6sD0fG5jA2eU7iO4rTnE=',
+      'AllowedIPs = 0.0.0.0/0, ::/0',
+      'Endpoint = 203.0.113.24:51820',
+      'PersistentKeepalive = 25'
+    ];
+    const tok = (t, color, extra) => Object.assign({ t, color, style: 'normal', deco: 'none' }, extra || {});
+    const lines = SRC.map((src, i) => {
+      const n = i + 1;
+      const isErr = error && n === 4;
+      let toks = [];
+      if (src.charAt(0) === '#') toks = [tok(src, c.text3, { style: 'italic' })];
+      else if (src.charAt(0) === '[') toks = [tok(src, c.sec, {})];
+      else if (src.indexOf(' = ') > 0) {
+        const k = src.split(' = ')[0], v = src.slice(k.length + 3);
+        toks = [
+          tok(k, isErr ? c.red : c.key, isErr ? { deco: 'underline wavy ' + c.red } : {}),
+          tok(' = ', c.eq),
+          tok(v, /^\d+$/.test(v) ? c.num : c.val)
+        ];
+        if (isErr) toks.push(tok('   ← неизвестный ключ', c.red, { style: 'italic' }));
+      } else toks = [tok(' ', c.val)];
+      return { n: String(n), toks, bg: isErr ? c.redSoft : (n === 4 ? c.curLine : 'transparent'), numColor: isErr ? c.red : (n === 4 ? c.text : c.text3), mark: isErr ? c.red : 'transparent' };
+    });
+    const nameErr = error && name === 'fra-home';
+    return {
+      c, lines, error, errOpacity: error ? 1 : 0, saveOpacity: error ? 0.45 : 1,
+      name, onName: (e) => this.setState({ name: e.target.value }),
+      nameInvalid: nameErr ? 'true' : 'false',
+      nameBorder: nameErr ? c.red : c.border, nameRing: nameErr ? '0 0 0 3px ' + c.redSoft : '0 0 0 3px ' + c.accentSoft,
+      nameMsg: nameErr ? 'Туннель с таким именем уже существует' : 'Латиница, цифры, «-» и «_», до 32 символов',
+      nameMsgColor: nameErr ? c.red : c.text3,
+      ksOn: ks ? 'true' : 'false', ksBg: ks ? c.accentBtn : 'transparent', ksBorder: ks ? c.accentBtn : c.offTrack, ksOpacity: ks ? 1 : 0,
+      toggleKs: () => this.setState({ ks: !ks })
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -12,8 +12,11 @@
 
 LANGUAGE LANG_NEUTRAL, SUBLANG_NEUTRAL
 CREATEPROCESS_MANIFEST_RESOURCE_ID RT_MANIFEST manifest.xml
-7 ICON ui/icon/wireguard.ico
+7 ICON webui/icon/netportal.ico
 8 ICON ui/icon/dot.ico
+9 ICON webui/icon/tray-on.ico
+10 ICON webui/icon/tray-off.ico
+11 ICON webui/icon/tray-busy.ico
 
 #define VERSIONINFO_TEMPLATE(block_id, lang_id, codepage_id, file_desc, comments) \
 VS_VERSION_INFO VERSIONINFO \
@@ -32,8 +35,8 @@ BEGIN \
       VALUE "FileVersion", EXPAND(WIREGUARD_VERSION_STR) \
       VALUE "InternalName", "amneziawg-windows-client" \
       VALUE "LegalCopyright", "Copyright © 2015-2022 Jason A. Donenfeld. WireGuard is a trademark of Jason A. Donenfeld.\nCopyright © 2024 AmneziaVPN. AmneziaWG is based on WireGuard, changes and modifications made by AmneziaVPN. All Rights Reserved." \
-      VALUE "OriginalFilename", "amneziawg.exe" \
-      VALUE "ProductName", "AmneziaWG" \
+      VALUE "OriginalFilename", "netportal.exe" \
+      VALUE "ProductName", "NET PORTAL" \
       VALUE "ProductVersion", EXPAND(WIREGUARD_VERSION_STR) \
       VALUE "Comments", comments \
     END \
@@ -47,14 +50,14 @@ END
 LANGUAGE LANG_ENGLISH, SUBLANG_DEFAULT
 VERSIONINFO_TEMPLATE(
   "040904b0", 0x409, 0x4b0,
-  "AmneziaWG: Fast, Modern, Secure VPN Tunnel",
+  "NET PORTAL: VPN client based on AmneziaWG",
   "https://amnezia.org/"
 )
 
 LANGUAGE LANG_FRENCH, SUBLANG_DEFAULT
 VERSIONINFO_TEMPLATE(
   "040c04b0", 0x40c, 0x4b0,
-  "AmneziaWG: tunnel VPN rapide, moderne, sécurisé",
+  "NET PORTAL : client VPN basé sur AmneziaWG",
   "https://amnezia.org/"
 )
 

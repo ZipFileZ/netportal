@@ -11,9 +11,13 @@ import (
 	"fmt"
 	"hash"
 	"io"
+	"os"
+	"os/exec"
 	"sync/atomic"
+	"syscall"
 
 	"golang.org/x/crypto/blake2b"
+	"golang.org/x/sys/windows"
 
 	"github.com/amnezia-vpn/amneziawg-windows-client/elevate"
 	"github.com/amnezia-vpn/amneziawg-windows-client/updater/winhttp"
@@ -43,9 +47,13 @@ func (pm *progressHashWatcher) Write(p []byte) (int, error) {
 }
 
 type UpdateFound struct {
-	name string
-	hash [blake2b.Size256]byte
+	name    string
+	version string
+	hash    [blake2b.Size256]byte
 }
+
+// Version is the version of the release that was found.
+func (u *UpdateFound) Version() string { return u.version }
 
 func CheckForUpdate() (updateFound *UpdateFound, err error) {
 	updateFound, _, _, err = checkForUpdate(false)
@@ -53,8 +61,8 @@ func CheckForUpdate() (updateFound *UpdateFound, err error) {
 }
 
 func checkForUpdate(keepSession bool) (*UpdateFound, *winhttp.Session, *winhttp.Connection, error) {
-	if !version.IsRunningOfficialVersion() {
-		return nil, nil, nil, errors.New("Build is not official, so updates are disabled")
+	if !Enabled() {
+		return nil, nil, nil, errors.New("Updates are not configured in this build")
 	}
 	session, err := winhttp.NewSession(version.UserAgent())
 	if err != nil {
@@ -74,17 +82,18 @@ func checkForUpdate(keepSession bool) (*UpdateFound, *winhttp.Session, *winhttp.
 			connection.Close()
 		}
 	}()
+	// GitHub answers with a redirect to its download host; WinHTTP follows
+	// HTTPS-to-HTTPS redirects by itself.
 	response, err := connection.Get(latestVersionPath, true)
 	if err != nil {
 		return nil, nil, nil, err
 	}
 	defer response.Close()
-	var fileList [1024 * 512] /* 512 KiB */ byte
-	bytesRead, err := response.Read(fileList[:])
-	if err != nil && (err != io.EOF || bytesRead == 0) {
+	list, err := io.ReadAll(io.LimitReader(response, 512*1024))
+	if err != nil {
 		return nil, nil, nil, err
 	}
-	files, err := readFileList(fileList[:bytesRead])
+	files, err := readFileList(list)
 	if err != nil {
 		return nil, nil, nil, err
 	}
@@ -100,6 +109,26 @@ func checkForUpdate(keepSession bool) (*UpdateFound, *winhttp.Session, *winhttp.
 
 var updateInProgress = uint32(0)
 
+// Suffixes of the files next to the executable during an update.
+const (
+	newSuffix = ".new"
+	oldSuffix = ".old"
+)
+
+// CleanupPreviousUpdate removes the executable an earlier update replaced.
+// It stays locked while tunnel services started before the update are still
+// running from it, so failure is expected and ignored.
+func CleanupPreviousUpdate() {
+	if exe, err := os.Executable(); err == nil {
+		os.Remove(exe + oldSuffix)
+		os.Remove(exe + newSuffix)
+	}
+}
+
+// DownloadVerifyAndExecute downloads the new executable, checks it against
+// the signed hash list, swaps it in place of the running one and restarts the
+// manager service. Tunnels keep running during the swap. It must run as
+// SYSTEM (the manager), or it elevates to SYSTEM itself when userToken is 0.
 func DownloadVerifyAndExecute(userToken uintptr) (progress chan DownloadProgress) {
 	progress = make(chan DownloadProgress, 128)
 	progress <- DownloadProgress{Activity: "Initializing"}
@@ -125,29 +154,35 @@ func DownloadVerifyAndExecute(userToken uintptr) (progress chan DownloadProgress
 			return
 		}
 
-		progress <- DownloadProgress{Activity: "Creating temporary file"}
-		file, err := msiTempFile()
+		exe, err := os.Executable()
 		if err != nil {
 			progress <- DownloadProgress{Error: err}
 			return
 		}
-		progress <- DownloadProgress{Activity: fmt.Sprintf("Msi destination is %#q", file.Name())}
+		newPath := exe + newSuffix
+		os.Remove(newPath)
+		file, err := os.OpenFile(newPath, os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0o600)
+		if err != nil {
+			progress <- DownloadProgress{Error: err}
+			return
+		}
+		keep := false
 		defer func() {
-			if file != nil {
-				file.Delete()
+			file.Close()
+			if !keep {
+				os.Remove(newPath)
 			}
 		}()
 
 		dp := DownloadProgress{Activity: "Downloading update"}
 		progress <- dp
-		response, err := connection.Get(fmt.Sprintf(msiPath, update.name), false)
+		response, err := connection.Get(fmt.Sprintf(assetPath, update.version, update.name), false)
 		if err != nil {
 			progress <- DownloadProgress{Error: err}
 			return
 		}
 		defer response.Close()
-		length, err := response.Length()
-		if err == nil && length >= 0 {
+		if length, err := response.Length(); err == nil && length > 0 {
 			dp.BytesTotal = length
 			progress <- dp
 		}
@@ -157,8 +192,7 @@ func DownloadVerifyAndExecute(userToken uintptr) (progress chan DownloadProgress
 			return
 		}
 		pm := &progressHashWatcher{&dp, progress, hasher}
-		_, err = io.Copy(file, io.TeeReader(io.LimitReader(response, 1024*1024*100 /* 100 MiB */), pm))
-		if err != nil {
+		if _, err = io.Copy(file, io.TeeReader(io.LimitReader(response, 1024*1024*100 /* 100 MiB */), pm)); err != nil {
 			progress <- DownloadProgress{Error: err}
 			return
 		}
@@ -166,20 +200,36 @@ func DownloadVerifyAndExecute(userToken uintptr) (progress chan DownloadProgress
 			progress <- DownloadProgress{Error: errors.New("The downloaded update has the wrong hash")}
 			return
 		}
-
-		progress <- DownloadProgress{Activity: "Verifying authenticode signature"}
-		if !verifyAuthenticode(file.ExclusivePath()) {
-			progress <- DownloadProgress{Error: errors.New("The downloaded update does not have an authentic authenticode signature")}
-			return
-		}
-
-		progress <- DownloadProgress{Activity: "Installing update"}
-		err = runMsi(file, userToken)
-		if err != nil {
+		if err = file.Close(); err != nil {
 			progress <- DownloadProgress{Error: err}
 			return
 		}
 
+		progress <- DownloadProgress{Activity: "Installing update"}
+		// A running executable can be renamed but not overwritten.
+		oldPath := exe + oldSuffix
+		os.Remove(oldPath)
+		if err = windows.Rename(exe, oldPath); err != nil {
+			progress <- DownloadProgress{Error: fmt.Errorf("unable to move the current version aside: %w", err)}
+			return
+		}
+		if err = windows.Rename(newPath, exe); err != nil {
+			windows.Rename(oldPath, exe)
+			progress <- DownloadProgress{Error: fmt.Errorf("unable to put the new version in place: %w", err)}
+			return
+		}
+		keep = true
+
+		progress <- DownloadProgress{Activity: "Restarting"}
+		// The new executable restarts the manager service; this process is
+		// the manager and is about to be stopped.
+		cmd := exec.Command(exe, "/restartmanager")
+		cmd.SysProcAttr = &syscall.SysProcAttr{HideWindow: true, CreationFlags: windows.DETACHED_PROCESS | windows.CREATE_NEW_PROCESS_GROUP}
+		if err = cmd.Start(); err != nil {
+			progress <- DownloadProgress{Error: fmt.Errorf("the update is installed, but restarting failed: %w", err)}
+			return
+		}
+		cmd.Process.Release()
 		progress <- DownloadProgress{Complete: true}
 	}
 	if userToken == 0 {
@@ -193,8 +243,10 @@ func DownloadVerifyAndExecute(userToken uintptr) (progress chan DownloadProgress
 			}
 		}()
 	} else {
+		// Called by the manager, which already runs as SYSTEM.
 		go doIt()
 	}
 
 	return progress
 }
+
