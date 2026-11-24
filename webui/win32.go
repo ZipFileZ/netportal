@@ -66,6 +66,7 @@ var (
 	procSetWindowTextW           = user32.NewProc("SetWindowTextW")
 	procLoadCursorW              = user32.NewProc("LoadCursorW")
 	procChangeWindowMsgFilterEx  = user32.NewProc("ChangeWindowMessageFilterEx")
+	procCreateSolidBrush         = gdi32.NewProc("CreateSolidBrush")
 
 	procShellNotifyIconW = shell32.NewProc("Shell_NotifyIconW")
 
@@ -96,6 +97,8 @@ const (
 	wmClose            = 0x0010
 	wmSettingChange    = 0x001A
 	wmGetMinMaxInfo    = 0x0024
+	wmShowWindow       = 0x0018
+	wmWindowPosChanged = 0x0047
 	wmMoving           = 0x0216
 	wmDpiChanged       = 0x02E0
 	wmLButtonUp        = 0x0202
@@ -127,6 +130,7 @@ const (
 	swpNoZOrder        = 0x0004
 	swpNoActivate      = 0x0010
 	swpShowWindow      = 0x0040
+	swpHideWindow      = 0x0080
 	waInactive         = 0
 	imageIcon          = 1
 	lrDefaultColor     = 0
@@ -204,6 +208,14 @@ type wndClassEx struct {
 	MenuName   *uint16
 	ClassName  *uint16
 	IconSm     windows.Handle
+}
+
+type windowPos struct {
+	Hwnd        windows.HWND
+	InsertAfter windows.HWND
+	X, Y        int32
+	Cx, Cy      int32
+	Flags       uint32
 }
 
 type minMaxInfo struct {

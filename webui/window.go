@@ -78,14 +78,18 @@ func registerClass(name string, icon windows.Handle) error {
 	}
 	inst := moduleHandle()
 	cursor, _, _ := procLoadCursorW.Call(0, 32512 /* IDC_ARROW */)
+	// Dark background (the design's window color) so the window never
+	// flashes white before the page paints.
+	brush, _, _ := procCreateSolidBrush.Call(uintptr(rgb(0x1A, 0x1C, 0x20)))
 	wc := wndClassEx{
-		Size:      uint32(unsafe.Sizeof(wndClassEx{})),
-		WndProc:   wndProcCallback,
-		Instance:  inst,
-		Icon:      icon,
-		IconSm:    icon,
-		Cursor:    windows.Handle(cursor),
-		ClassName: windows.StringToUTF16Ptr(name),
+		Size:       uint32(unsafe.Sizeof(wndClassEx{})),
+		WndProc:    wndProcCallback,
+		Instance:   inst,
+		Icon:       icon,
+		IconSm:     icon,
+		Cursor:     windows.Handle(cursor),
+		Background: windows.Handle(brush),
+		ClassName:  windows.StringToUTF16Ptr(name),
 	}
 	if r, _, err := procRegisterClassExW.Call(uintptr(unsafe.Pointer(&wc))); r == 0 {
 		return err
@@ -174,8 +178,27 @@ func newWebWindow(o windowOptions) (*webWindow, error) {
 		c2.PutDefaultBackgroundColor(o.background)
 	}
 	w.chromium.Resize()
-	w.chromium.Hide() // the window starts hidden; show() makes both visible
+	// Match the WebView to the window. Something may already have shown the
+	// window while WebView2 was starting: the launcher raises it as soon as
+	// it is created (WaitForRaiseUIThenQuit).
+	w.syncWebViewVisibility(isWindowVisible(w.hwnd))
 	return w, nil
+}
+
+// syncWebViewVisibility keeps the WebView's visibility equal to the
+// window's, however the window was shown or hidden (our code, the raise from
+// another process, the taskbar). A hidden WebView over a visible window is a
+// blank white rectangle; a visible one in a hidden window keeps the page's
+// timers running for nothing.
+func (w *webWindow) syncWebViewVisibility(visible bool) {
+	if w == nil || w.chromium == nil || w.chromium.GetController() == nil {
+		return
+	}
+	if visible {
+		w.chromium.Show()
+	} else {
+		w.chromium.Hide()
+	}
 }
 
 func (w *webWindow) eval(js string) {
@@ -238,6 +261,17 @@ func wndProc(hwnd windows.HWND, m uint32, wp, lp uintptr) uintptr {
 	case wmSetFocus:
 		if w != nil && w.chromium != nil {
 			w.chromium.Focus()
+		}
+	case wmShowWindow:
+		w.syncWebViewVisibility(wp != 0)
+	case wmWindowPosChanged:
+		// SetWindowPos with SWP_SHOWWINDOW/SWP_HIDEWINDOW does not send
+		// WM_SHOWWINDOW, so watch the position change too.
+		pos := (*windowPos)(unsafe.Pointer(lp))
+		if pos.Flags&swpShowWindow != 0 {
+			w.syncWebViewVisibility(true)
+		} else if pos.Flags&swpHideWindow != 0 {
+			w.syncWebViewVisibility(false)
 		}
 	case wmActivate:
 		if w != nil && wp&0xffff == waInactive && w.onDeactivate != nil {

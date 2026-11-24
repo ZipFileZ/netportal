@@ -163,7 +163,7 @@ func run(be backend, demo, isAdmin bool) {
 		s.ShowOnNextStart = false
 		a.settings.set(s)
 		a.showMain()
-	} else if !trayOK || !s.StartMinimized || demo {
+	} else if !trayOK || !s.StartMinimized || (demo && demoHints["hidden"] != "1") {
 		a.showMain()
 	}
 	if demo && demoHints["tray"] == "1" {
