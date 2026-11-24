@@ -210,7 +210,8 @@ svg { flex: none; }
 .row-sub.live { color: var(--st); }
 .list-empty { padding: 24px 12px; text-align: center; color: var(--text3); font-size: 12px; }
 .list-foot { height: 44px; flex: none; display: flex; align-items: center; gap: 4px; padding: 0 8px; border-top: 1px solid var(--border-soft); }
-.list-foot .btn.ghost { font-size: 12px; font-weight: 400; justify-content: flex-start; }
+/* Only the text button ("Export all") is left-aligned; icon buttons stay centered. */
+.list-foot .btn.ghost.grow { font-size: 12px; font-weight: 400; justify-content: flex-start; }
 .multi-bar {
   margin: 8px; padding: 8px 8px 8px 12px; border-radius: 8px; background: var(--card); border: 1px solid var(--border);
   display: flex; align-items: center; gap: 6px; box-shadow: var(--shadow);
