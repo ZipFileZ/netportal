@@ -110,7 +110,7 @@ const (
 	wsOverlappedWindow = 0x00CF0000
 	// Caption, system menu and minimize box only: no sizing border and no
 	// maximize box, so the window keeps its size.
-	wsFixedWindow = 0x00C00000 | 0x00080000 | 0x00020000
+	wsFixedWindow      = 0x00C00000 | 0x00080000 | 0x00020000
 	wsPopup            = 0x80000000
 	wsClipChildren     = 0x02000000
 	wsExToolWindow     = 0x00000080

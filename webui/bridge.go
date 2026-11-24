@@ -14,6 +14,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
 	"net"
 	"os"
 	"path/filepath"
@@ -485,20 +486,31 @@ func (a *app) rpcStart(w *webWindow, raw json.RawMessage) (any, error) {
 	a.mu.Lock()
 	delete(a.lastErrors, args.Name)
 	a.mu.Unlock()
+	// One tunnel at a time unless the user allowed several: the manager only
+	// stops tunnels whose routes intersect, so stop the rest here.
+	if !a.settings.get().MultipleTunnels {
+		for _, other := range a.conflictingTunnels(args.Name) {
+			if err := a.be.Stop(other); err != nil {
+				log.Printf("Unable to stop %s before starting %s: %v", other, args.Name, err)
+			}
+		}
+	}
 	if err := a.be.Start(args.Name); err != nil {
 		return nil, codeErr("startFailed", err)
 	}
 	return nil, nil
 }
 
-// conflictingTunnels lists the active tunnels that starting name would stop.
-// The manager stops every running tunnel whose addresses or routes intersect
-// with the new one (see ManagerService.Start); others keep running.
+// conflictingTunnels lists the active tunnels that starting name will stop.
+// In one-tunnel mode that is every other active tunnel. Otherwise it is what
+// the manager stops: running tunnels whose addresses or routes intersect with
+// the new one (see ManagerService.Start).
 func (a *app) conflictingTunnels(name string) []string {
 	cfg, err := a.be.StoredConfig(name)
 	if err != nil {
 		return nil
 	}
+	onlyOne := !a.settings.get().MultipleTunnels
 	names, err := a.be.TunnelNames()
 	if err != nil {
 		return nil
@@ -512,9 +524,11 @@ func (a *app) conflictingTunnels(name string) []string {
 		if err != nil || (st != manager.TunnelStarted && st != manager.TunnelStarting) {
 			continue
 		}
-		other, err := a.be.StoredConfig(n)
-		if err != nil || !cfg.IntersectsWith(&other) {
-			continue
+		if !onlyOne {
+			other, err := a.be.StoredConfig(n)
+			if err != nil || !cfg.IntersectsWith(&other) {
+				continue
+			}
 		}
 		out = append(out, n)
 	}

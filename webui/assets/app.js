@@ -650,6 +650,7 @@ function renderSettings() {
           ${setRow(t('set.autostart'), S.admin ? t('set.autostart.hint') : t('set.autostart.admin'), sw(S.autostart, 'autostart', t('set.autostart'), !S.admin || !S.autostartKnown))}
           ${setRow(t('set.minimized'), t('set.minimized.hint'), sw(s.startMinimized, 'setting', t('set.minimized')).replace('data-act="setting"', 'data-act="setting" data-field="startMinimized"'))}
           ${setRow(t('set.autoconnect'), t('set.autoconnect.hint'), `<div style="display:flex;align-items:center;gap:10px"><select class="select sm" data-key="autotn" data-change="autoTunnel" aria-label="${esc(t('set.autoconnect'))}" ${s.autoConnect ? '' : 'disabled'}>${tunnelOpts}</select>${sw(s.autoConnect, 'setting', t('set.autoconnect')).replace('data-act="setting"', 'data-act="setting" data-field="autoConnect"')}</div>`)}
+          ${setRow(t('set.multi'), t('set.multi.hint'), `<button class="switch" role="switch" aria-checked="${!!s.multipleTunnels}" aria-label="${esc(t('set.multi'))}" data-act="setting" data-field="multipleTunnels"></button>`)}
           ${setRow(t('set.switchWarn'), t('set.switchWarn.hint'), `<button class="switch" role="switch" aria-checked="${!s.skipSwitchWarning}" aria-label="${esc(t('set.switchWarn'))}" data-act="switchWarn"></button>`)}
           ${setRow(t('set.notify'), t('set.notify.hint'), sw(s.notifications, 'setting', t('set.notify')).replace('data-act="setting"', 'data-act="setting" data-field="notifications"'))}
         </div></div>
@@ -1114,9 +1115,13 @@ function toggleTunnel(name) {
 function applyToggle(name, stop) {
   const tn = tunnelByName(name);
   if (!tn) return;
-  // Optimistic state so the switch reacts immediately.
+  // Optimistic state so the switches react immediately.
   tn.state = stop ? 'stopping' : 'starting';
   tn.error = '';
+  if (!stop && !S.settings.multipleTunnels) {
+    // One tunnel at a time: the others are being disconnected.
+    S.tunnels.forEach((x) => { if (x !== tn && (x.state === 'started' || x.state === 'starting')) x.state = 'stopping'; });
+  }
   render();
   np.call(stop ? 'stop' : 'start', { name }).catch((e) => { errorToast(name, e); refreshList(); });
 }

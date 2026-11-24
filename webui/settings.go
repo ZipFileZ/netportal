@@ -29,6 +29,11 @@ type Settings struct {
 	// Don't ask before connecting a tunnel that will disconnect another one.
 	SkipSwitchWarning bool `json:"skipSwitchWarning"`
 
+	// Allow several tunnels at once (only those whose routes do not
+	// intersect, as the manager decides). Off: connecting a tunnel
+	// disconnects every other one.
+	MultipleTunnels bool `json:"multipleTunnels"`
+
 	// Set before an update so the restarted UI opens its window instead of
 	// staying in the tray.
 	ShowOnNextStart bool `json:"showOnNextStart,omitempty"`
