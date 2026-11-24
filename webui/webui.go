@@ -99,11 +99,9 @@ func run(be backend, demo, isAdmin bool) {
 		a.main, err = newWebWindow(windowOptions{
 			class:      manageWindowClass,
 			title:      a.title(),
-			style:      wsOverlappedWindow,
+			style:      wsFixedWindow,
 			w:          demoSize(0, 1040),
 			h:          demoSize(1, 680),
-			minW:       720,
-			minH:       480,
 			background: edge.COREWEBVIEW2_COLOR{A: 255, R: 0x1A, G: 0x1C, B: 0x20},
 			devTools:   demo,
 		})
