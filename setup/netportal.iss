@@ -66,7 +66,9 @@ Name: "{autodesktop}\NET PORTAL"; Filename: "{app}\netportal.exe"; Tasks: deskto
 
 [Run]
 ; Registers and starts the manager service, which then opens the window.
-Filename: "{app}\netportal.exe"; Parameters: "/installmanagerservice"; Description: "{cm:LaunchApp}"; Flags: postinstall nowait
+; Inno runs postinstall entries as the original, non-elevated user by
+; default; creating a service needs the installer's admin rights.
+Filename: "{app}\netportal.exe"; Parameters: "/installmanagerservice"; Description: "{cm:LaunchApp}"; Flags: postinstall nowait runascurrentuser
 
 [UninstallDelete]
 ; Left over by self-updates (the replaced executable).
