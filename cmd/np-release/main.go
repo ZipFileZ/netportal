@@ -181,7 +181,18 @@ func sign(keyPath, outDir string) error {
 	if err := os.WriteFile(filepath.Join(outDir, "latest.sig"), []byte(content), 0o644); err != nil {
 		return err
 	}
-	fmt.Printf("  latest.sig\n\nRelease files are in %s.\n", outDir)
+	fmt.Printf("  latest.sig\n")
+	// The installer is for people downloading by hand; updates use the exes.
+	setupName := fmt.Sprintf("NetPortal-Setup-%s.exe", ver)
+	if _, err := os.Stat(filepath.Join("setup", "out", setupName)); err == nil {
+		if _, err := copyAndHash(filepath.Join("setup", "out", setupName), filepath.Join(outDir, setupName)); err != nil {
+			return err
+		}
+		fmt.Printf("  %s\n", setupName)
+	} else {
+		fmt.Printf("  (no installer: run setup\\build.bat to include %s)\n", setupName)
+	}
+	fmt.Printf("\nRelease files are in %s.\n", outDir)
 	fmt.Printf("Create a GitHub release with the tag v%s and upload all of them.\n", ver)
 	return nil
 }

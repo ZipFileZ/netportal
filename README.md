@@ -10,12 +10,11 @@ VPN-клиент для Windows с обфускацией трафика. Осн
 
 ## Установка
 
-1. Скачайте `netportal-<архитектура>-<версия>.exe` из [последнего релиза](https://github.com/ZipFileZ/netportal/releases/latest) (`amd64` — для большинства компьютеров).
-2. Положите его в постоянную папку, например `C:\Program Files\NetPortal\netportal.exe`, и запустите. Программа установит свою службу и появится в трее.
+Скачайте `NetPortal-Setup-<версия>.exe` из [последнего релиза](https://github.com/ZipFileZ/netportal/releases/latest) и запустите. Установщик сам выберет версию для вашего компьютера (x64, x86 или ARM64), поставит программу в `C:\Program Files\NetPortal`, зарегистрирует службу и добавит ярлык в меню «Пуск». Удаление — через «Параметры → Приложения»; туннели при этом можно сохранить.
 
 Нужна Windows 10/11 с [WebView2 Runtime](https://developer.microsoft.com/microsoft-edge/webview2/) (в Windows 11 он уже есть).
 
-Удаление: `netportal.exe /uninstallmanagerservice` от имени администратора, затем удалите папку программы.
+Без установщика: положите `netportal-<архитектура>-<версия>.exe` в постоянную папку как `netportal.exe` и запустите. Удаление в этом случае: `netportal.exe /uninstallmanagerservice` от имени администратора, затем удалите папку.
 
 Посмотреть интерфейс без установки: `netportal.exe /uidemo` — демо-режим с ненастоящими туннелями, ничего не устанавливает.
 
@@ -27,13 +26,15 @@ build.bat
 
 Скрипт скачивает Go и компилятор в `.deps` и собирает `amd64`, `x86` и `arm64`. Подробнее — [`docs/buildrun.md`](docs/buildrun.md).
 
+Установщик: `setup\build.bat` (нужен [Inno Setup 6](https://jrsoftware.org/isinfo.php): `winget install JRSoftware.InnoSetup`) — результат в `setup\out`.
+
 ## Выпуск обновления
 
 Программа раз в час проверяет `latest.sig` в последнем релизе, сверяет его подпись с ключом в [`updater/constants.go`](updater/constants.go), скачивает новый exe, проверяет хэш и заменяет себя, не разрывая туннели.
 
 1. Увеличьте `Number` в [`version/version.go`](version/version.go).
-2. `build.bat`
-3. `go run ./cmd/np-release sign` — файлы появятся в `release\v<версия>`.
+2. `build.bat`, затем `setup\build.bat`
+3. `go run ./cmd/np-release sign` — файлы (exe, установщик и `latest.sig`) появятся в `release\v<версия>`.
 4. Создайте релиз с тегом `v<версия>` и загрузите туда все файлы из этой папки.
 
 Секретный ключ подписи хранится вне репозитория (`%USERPROFILE%\.netportal\release.key`). Без него выпустить обновление нельзя.

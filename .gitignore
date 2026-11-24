@@ -20,3 +20,4 @@
 # NET PORTAL release output and signing keys
 /release
 *.key
+/setup/out
