@@ -82,8 +82,8 @@ const I18N = {
     'del.confirm': 'Удалить', 'cancel': 'Отмена',
 
     'sw.title': 'Переключиться на «{0}»?',
-    'sw.text.one': 'Сейчас подключён туннель {0} — он будет отключён. Пока подключается «{1}», соединение на несколько секунд прервётся: загрузки и звонки могут оборваться.',
-    'sw.text.many': 'Сейчас подключены туннели {0} — они будут отключены. Пока подключается «{1}», соединение на несколько секунд прервётся: загрузки и звонки могут оборваться.',
+    'sw.text.one': 'Сейчас подключён туннель {0} — он будет отключён. Пока подключается «{1}», доступ в интернет может оборваться на несколько секунд.',
+    'sw.text.many': 'Сейчас подключены туннели {0} — они будут отключены. Пока подключается «{1}», доступ в интернет может оборваться на несколько секунд.',
     'sw.dontAsk': 'Больше не спрашивать', 'sw.confirm': 'Переключиться',
     'set.switchWarn': 'Предупреждать при переключении', 'set.switchWarn.hint': 'Спрашивать перед подключением туннеля, который отключит текущий',
 
@@ -233,8 +233,8 @@ const I18N = {
     'del.confirm': 'Delete', 'cancel': 'Cancel',
 
     'sw.title': 'Switch to “{0}”?',
-    'sw.text.one': 'Tunnel {0} is connected and will be disconnected. While “{1}” connects, the connection drops for a few seconds: downloads and calls may be interrupted.',
-    'sw.text.many': 'Tunnels {0} are connected and will be disconnected. While “{1}” connects, the connection drops for a few seconds: downloads and calls may be interrupted.',
+    'sw.text.one': 'Tunnel {0} is connected and will be disconnected. While “{1}” connects, internet access may drop for a few seconds.',
+    'sw.text.many': 'Tunnels {0} are connected and will be disconnected. While “{1}” connects, internet access may drop for a few seconds.',
     'sw.dontAsk': 'Don’t ask again', 'sw.confirm': 'Switch',
     'set.switchWarn': 'Warn when switching', 'set.switchWarn.hint': 'Ask before connecting a tunnel that disconnects the current one',
 
