@@ -29,6 +29,12 @@ type webWindow struct {
 
 	minW, minH int32 // in DIPs, 0 for none
 
+	// fit keeps the window inside its monitor's work area. The main window
+	// cannot be resized by the user, so on small or highly scaled screens
+	// it is shrunk to fit instead (the page has a compact layout for that).
+	fit          bool
+	wantW, wantH int32 // design size in DIPs
+
 	onMessage    func(string)
 	onClose      func() // nil means destroy
 	onDeactivate func()
@@ -247,6 +253,9 @@ func wndProc(hwnd windows.HWND, m uint32, wp, lp uintptr) uintptr {
 	case wmDpiChanged:
 		r := (*rect)(unsafe.Pointer(lp))
 		setWindowPos(hwnd, 0, r.Left, r.Top, r.Right-r.Left, r.Bottom-r.Top, swpNoZOrder|swpNoActivate)
+		if w != nil && w.fit {
+			w.fitToMonitor(false)
+		}
 		return 0
 	case wmClose:
 		if w != nil && w.onClose != nil {
@@ -274,4 +283,47 @@ func runMessageLoop() {
 		procTranslateMessage.Call(uintptr(unsafe.Pointer(&m)))
 		procDispatchMessageW.Call(uintptr(unsafe.Pointer(&m)))
 	}
+}
+
+// fitToMonitor sizes the window to its design size at the current DPI,
+// shrunk to the work area of the monitor it is on, and keeps it inside that
+// area. With center set it is also centered there.
+func (w *webWindow) fitToMonitor(center bool) {
+	mon, _, _ := procMonitorFromWindow.Call(uintptr(w.hwnd), monitorDefaultNear)
+	mi := monitorInfo{Size: uint32(unsafe.Sizeof(monitorInfo{}))}
+	if r, _, _ := procGetMonitorInfoW.Call(mon, uintptr(unsafe.Pointer(&mi))); r == 0 {
+		return
+	}
+	work := mi.Work
+	dpi := dpiForWindow(w.hwnd)
+	margin := scale(8, dpi)
+	maxW := work.Right - work.Left - 2*margin
+	maxH := work.Bottom - work.Top - 2*margin
+	width, height := scale(w.wantW, dpi), scale(w.wantH, dpi)
+	if width > maxW {
+		width = maxW
+	}
+	if height > maxH {
+		height = maxH
+	}
+	var cur rect
+	procGetWindowRect.Call(uintptr(w.hwnd), uintptr(unsafe.Pointer(&cur)))
+	x, y := cur.Left, cur.Top
+	if center {
+		x = work.Left + (work.Right-work.Left-width)/2
+		y = work.Top + (work.Bottom-work.Top-height)/2
+	}
+	if x+width > work.Right-margin {
+		x = work.Right - margin - width
+	}
+	if y+height > work.Bottom-margin {
+		y = work.Bottom - margin - height
+	}
+	if x < work.Left+margin {
+		x = work.Left + margin
+	}
+	if y < work.Top+margin {
+		y = work.Top + margin
+	}
+	setWindowPos(w.hwnd, 0, x, y, width, height, swpNoZOrder|swpNoActivate)
 }

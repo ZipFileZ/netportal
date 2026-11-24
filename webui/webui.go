@@ -115,6 +115,8 @@ func run(be backend, demo, isAdmin bool) {
 		time.Sleep(400 * time.Millisecond)
 	}
 	procChangeWindowMsgFilterEx.Call(uintptr(a.main.hwnd), uintptr(raiseMsg), 1 /* MSGFLT_ALLOW */, 0)
+	a.main.fit, a.main.wantW, a.main.wantH = true, demoSize(0, 1040), demoSize(1, 680)
+	a.main.fitToMonitor(true)
 
 	a.tray = newTrayIcon(a.main.hwnd)
 	a.tray.onClick = a.togglePopup
