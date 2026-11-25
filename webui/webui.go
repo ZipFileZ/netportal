@@ -191,7 +191,7 @@ func run(be backend, demo, isAdmin bool) {
 }
 
 func (a *app) title() string {
-	if a.demo {
+	if a.demo && demoHints["clean"] != "1" {
 		return appName + " (demo)"
 	}
 	return appName

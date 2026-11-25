@@ -2,6 +2,21 @@
 
 VPN-клиент для Windows с обфускацией трафика. Основан на [AmneziaWG для Windows](https://github.com/amnezia-vpn/amneziawg-windows-client), который в свою очередь основан на [WireGuard для Windows](https://git.zx2c4.com/wireguard-windows/).
 
+![NET PORTAL: подключённый туннель, тёмная тема](docs/images/main-dark.png)
+
+<table>
+  <tr>
+    <td><img src="docs/images/main-light.png" alt="Светлая тема"></td>
+    <td><img src="docs/images/settings-dark.png" alt="Настройки"></td>
+  </tr>
+  <tr>
+    <td align="center">Светлая тема</td>
+    <td align="center">Настройки</td>
+  </tr>
+</table>
+
+<sub>Скриншоты сделаны в демо-режиме, адреса и ключи ненастоящие.</sub>
+
 Отличия от AmneziaWG:
 
 - новый интерфейс на WebView2 (`webui/`): тёмная и светлая тема, график скорости, внешний IP, редактор конфигурации с проверкой ошибок, импорт из файла, буфера обмена и QR-кода, трей-попап, русский и английский языки;

@@ -253,7 +253,7 @@ function renderMain() {
           ${svg(id, 16)}<span class="nav-label">${esc(t(key))}</span>
         </button>`).join('')}
       <div class="nav-spacer"></div>
-      ${S.demo ? `<div class="demo-pill">${esc(t('demo'))}</div>` : ''}
+      ${S.demo && !(BOOT.hints && BOOT.hints.clean) ? `<div class="demo-pill">${esc(t('demo'))}</div>` : ''}
       ${showUpd ? `
         <div class="update-card">
           <div class="title">${svg('download', 16)}${esc(t('update.available'))}</div>

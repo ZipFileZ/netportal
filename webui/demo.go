@@ -230,6 +230,9 @@ func (d *demoBackend) GlobalState() (manager.TunnelState, error) {
 }
 
 func (d *demoBackend) UpdateState() (manager.UpdateState, error) {
+	if demoHints["update"] == "0" {
+		return manager.UpdateStateUnknown, nil
+	}
 	return manager.UpdateStateFoundUpdate, nil
 }
 
