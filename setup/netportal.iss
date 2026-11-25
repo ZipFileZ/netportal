@@ -58,6 +58,10 @@ Name: "desktopicon"; Description: "{cm:DesktopIcon}"; Flags: unchecked
 Source: "..\arm64\netportal.exe"; DestDir: "{app}"; Flags: ignoreversion; Check: IsArm64
 Source: "..\amd64\netportal.exe"; DestDir: "{app}"; Flags: ignoreversion; Check: IsX64OS
 Source: "..\x86\netportal.exe";   DestDir: "{app}"; Flags: ignoreversion; Check: IsX86OS
+; Wintun driver DLL: tunnels cannot start without it next to the exe.
+Source: "..\arm64\wintun.dll"; DestDir: "{app}"; Flags: ignoreversion; Check: IsArm64
+Source: "..\amd64\wintun.dll"; DestDir: "{app}"; Flags: ignoreversion; Check: IsX64OS
+Source: "..\x86\wintun.dll";   DestDir: "{app}"; Flags: ignoreversion; Check: IsX86OS
 Source: "..\COPYING"; DestDir: "{app}"; DestName: "LICENSE.txt"; Flags: ignoreversion
 
 [Icons]

@@ -40,7 +40,7 @@ func checkForUpdates() {
 		IPCServerNotifyUpdateFound(updateState)
 		return
 	}
-	log.Printf("Checking for updates of version %s at github.com/%s", version.Number, updater.UpdateRepo)
+	log.Printf("Checking for updates of version %s", version.Number)
 	if services.StartedAtBoot() {
 		jitterSleep(time.Minute*2, time.Minute*5)
 	}

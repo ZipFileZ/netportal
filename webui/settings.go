@@ -26,6 +26,11 @@ type Settings struct {
 	Notifications     bool   `json:"notifications"`
 	ExternalIP        bool   `json:"externalIP"`
 
+	// Ping through each connected tunnel every 15 s and report a lost link;
+	// optionally restart the tunnel when it stays lost.
+	HealthCheck   bool `json:"healthCheck"`
+	AutoReconnect bool `json:"autoReconnect"`
+
 	// Don't ask before connecting a tunnel that will disconnect another one.
 	SkipSwitchWarning bool `json:"skipSwitchWarning"`
 
@@ -48,6 +53,7 @@ func defaultSettings() Settings {
 		StartMinimized: true,
 		Notifications:  true,
 		ExternalIP:     true,
+		HealthCheck:    true,
 	}
 }
 

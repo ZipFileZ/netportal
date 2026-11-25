@@ -508,3 +508,25 @@ body.tray { background: var(--tray-bg); }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
+
+/* Inline text button (e.g. "unavailable · retry" for the external IP). */
+.link-btn { background: none; border: 0; padding: 0; font: inherit; color: inherit; cursor: pointer; text-decoration: underline dotted; text-underline-offset: 3px; }
+.link-btn:hover { color: var(--text); }
+.link-btn:focus-visible { outline: 2px solid var(--accent, currentColor); outline-offset: 2px; border-radius: 3px; }
+
+/* Connection check indicator in the tunnel card. */
+.health-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; vertical-align: 1px; }
+.health-dot.ok { background: var(--green); }
+.health-dot.warn { background: var(--yellow); }
+.health-dot.down { background: var(--red); }
+.health-down { color: var(--red); }
+
+/* The power button is the only way to connect from the main window, so in
+   the idle state it uses the accent colour instead of looking disabled. */
+.st-idle .power { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+.st-idle .power:hover { filter: none; box-shadow: 0 0 0 6px var(--accent-soft); }
+.power:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+
+/* About: app version with the "check for updates" button. */
+.version-card { border-radius: 12px; border: 1px solid var(--border); background: var(--card); padding: 14px 16px; display: flex; align-items: center; gap: 16px; }
+.version-status { font-size: 12px; line-height: 18px; text-align: right; }

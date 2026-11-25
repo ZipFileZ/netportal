@@ -42,6 +42,7 @@ const ICON = {
   settings: 'M2.5 4.5h6M11.5 4.5h2M2.5 11.5h2M7.5 11.5h6M10 3v3M6 10v3',
   about: 'M8 14.5A6.5 6.5 0 1 0 8 1.5a6.5 6.5 0 0 0 0 13zM8 7.2v4M8 4.8v.1',
   download: 'M8 2.5v7.5M4.8 7l3.2 3.2L11.2 7M3 13.5h10',
+  refresh: 'M13.5 8a5.5 5.5 0 1 1-1.6-3.9M13.5 2.5v2.6h-2.6',
   plus: 'M8 3v10M3 8h10',
   chevron: 'M4 6l4 4 4-4',
   back: 'M10 3L5 8l5 5',
@@ -137,6 +138,7 @@ const S = {
   stats: {}, // name -> {samples:[{t,rx,tx}], rx, tx, hs, rates:[{rx,tx}], peers}
   since: {}, // name -> ms when we saw it become connected
   extIP: {}, // name -> {state, ip}
+  health: {}, // name -> {status, rtt, target, since}
   overlay: null, // {kind:'add'|'qr'|'delete'|'picker'|'leave', ...}
   drop: 0,
   toasts: [],
@@ -296,7 +298,6 @@ function renderTunnelsList() {
   const items = S.tunnels.filter((x) => !q || x.name.toLowerCase().includes(q));
   const rows = items.map((tn) => {
     const st = stateOf(tn);
-    const on = st === 'connected' || st === 'connecting';
     const sel = tn.name === S.selected && !S.multi;
     const checked = S.multi && S.checked.has(tn.name);
     return `
@@ -309,7 +310,6 @@ function renderTunnelsList() {
             <span class="row-sub${st !== 'idle' ? ' live' : ''}" data-live="rowsub" data-name="${esc(tn.name)}">${esc(rowSub(tn))}</span>
           </span>
         </button>
-        <button class="switch sm${st === 'connecting' ? ' busy' : ''}" role="switch" aria-checked="${on}" aria-label="${esc(t('list.toggle', tn.name))}" data-act="toggle" data-name="${esc(tn.name)}"></button>
       </div>`;
   }).join('');
 
@@ -355,12 +355,30 @@ function heroSub(st, d, tn) {
   }
 }
 
+
+
+// Connection check (ping through the tunnel every 15 s, done by the app).
+function healthCell(name, st) {
+  if (st !== 'connected') return `<span class="mono muted">—</span>`;
+  if (!S.settings.healthCheck) return `<span class="muted">${esc(t('hero.health.off'))}</span>`;
+  return `<span class="ellipsis" data-live="health" data-name="${esc(name)}">${healthInner(name)}</span>`;
+}
+
+function healthInner(name) {
+  const h = S.health[name];
+  if (!h || h.status === 'checking') return `<span class="muted">${esc(t('hero.health.checking'))}</span>`;
+  if (h.status === 'ok') return `<span class="health-dot ok" aria-hidden="true"></span>${esc(t('hero.health.ok'))}<span class="muted tnum"> · ${h.rtt} ${esc(t('unit.ms'))}</span>`;
+  if (h.status === 'unknown') return `<span class="muted" title="${esc(t('hero.health.unknown.hint'))}">${esc(t('hero.health.unknown'))}</span>`;
+  if (h.status === 'reconnecting') return `<span class="health-dot warn" aria-hidden="true"></span>${esc(t('hero.health.reconnecting'))}`;
+  return `<span class="health-dot down" aria-hidden="true"></span><span class="health-down">${esc(t('hero.health.down'))}</span>${h.since ? `<span class="muted tnum"> · ${fmtDuration(Date.now() - h.since)}</span>` : ''}`;
+}
+
 function extIPCell(name, st) {
   if (st !== 'connected') return `<span class="mono muted">—</span>`;
   if (!S.settings.externalIP) return `<span class="muted">${esc(t('hero.extip.off'))}</span>`;
   const e = S.extIP[name];
   if (!e || e.state === 'loading') return `<span class="muted">${esc(t('hero.extip.loading'))}</span>`;
-  if (e.state === 'failed') return `<span class="muted">${esc(t('hero.extip.failed'))}</span>`;
+  if (e.state === 'failed') return `<button class="link-btn muted" data-act="extipRetry" data-name="${esc(name)}" title="${esc(t('hero.extip.retry'))}">${esc(t('hero.extip.failed'))} · ${esc(t('hero.extip.retry'))}</button>`;
   const place = ipPlace(e);
   return `<span class="ellipsis"><span class="mono selectable">${esc(e.ip)}</span>${place ? `<span class="muted"> · ${esc(place)}</span>` : ''}</span>`;
 }
@@ -535,6 +553,7 @@ function renderDetails() {
               <span>${esc(t('hero.endpoint'))}</span><span class="mono ellipsis selectable">${esc(ep || '—')}</span>
               <span>${esc(t('hero.addr'))}</span><span class="mono ellipsis selectable">${esc(addr || '—')}</span>
               <span>${esc(t('hero.extip'))}</span>${extIPCell(tn.name, st)}
+              <span>${esc(t('hero.health'))}</span>${healthCell(tn.name, st)}
             </div>
           </div>
         </div>
@@ -654,6 +673,10 @@ function renderSettings() {
           ${setRow(t('set.switchWarn'), t('set.switchWarn.hint'), `<button class="switch" role="switch" aria-checked="${!s.skipSwitchWarning}" aria-label="${esc(t('set.switchWarn'))}" data-act="switchWarn"></button>`)}
           ${setRow(t('set.notify'), t('set.notify.hint'), sw(s.notifications, 'setting', t('set.notify')).replace('data-act="setting"', 'data-act="setting" data-field="notifications"'))}
         </div></div>
+        <div class="group"><h2>${esc(t('set.conn'))}</h2><div class="group-box">
+          ${setRow(t('set.health'), t('set.health.hint'), `<button class="switch" role="switch" aria-checked="${!!s.healthCheck}" aria-label="${esc(t('set.health'))}" data-act="setting" data-field="healthCheck"></button>`)}
+          ${setRow(t('set.reconnect'), t('set.reconnect.hint'), `<button class="switch" role="switch" aria-checked="${!!s.autoReconnect}" aria-label="${esc(t('set.reconnect'))}" data-act="setting" data-field="autoReconnect" ${s.healthCheck ? '' : 'disabled'}></button>`)}
+        </div></div>
         <div class="group"><h2>${esc(t('set.privacy'))}</h2><div class="group-box">
           ${setRow(t('set.extip'), t('set.extip.hint'), sw(s.externalIP, 'setting', t('set.extip')).replace('data-act="setting"', 'data-act="setting" data-field="externalIP"'))}
         </div></div>
@@ -663,9 +686,26 @@ function renderSettings() {
 
 /* ----- about ----- */
 
+function renderVersionCard(a) {
+  const c = S.updCheck || {};
+  let status = '';
+  if (c.state === 'checking') status = `<span class="dim">${esc(t('about.check.checking'))}</span>`;
+  else if (c.state === 'latest') status = `<span class="dim"><span class="health-dot ok" aria-hidden="true"></span>${esc(t('about.check.latest'))}</span>`;
+  else if (c.state === 'found') status = `<span style="color:var(--accent);font-weight:600">${esc(t('about.check.found', c.version || ''))}</span>`;
+  else if (c.state === 'failed') status = `<span class="health-down" title="${esc(c.detail || '')}">${esc(t('about.check.failed'))}</span>`;
+  return `
+        <div class="version-card">
+          <div class="grow">
+            <div class="dim" style="font-size:12px;line-height:18px">${esc(t('about.app'))}</div>
+            <div class="mono selectable" style="font-size:15px;line-height:22px;font-weight:600">${esc(a.app || '—')}</div>
+          </div>
+          <div class="version-status" role="status">${status}</div>
+          <button class="btn" data-act="checkUpdate" ${c.state === 'checking' ? 'disabled' : ''}>${svg('refresh', 15, { sw: 1.6 })}${esc(t('about.check'))}</button>
+        </div>`;
+}
+
 function renderAbout() {
   const a = S.about || {};
-  const versions = [['about.app', a.app], ['about.wintun', a.wintun], ['about.go', a.go], ['about.os', a.os], ['about.arch', a.arch]];
   let upd = '';
   if (S.upd && !S.upd.complete && !S.upd.error) {
     const pct = S.upd.total ? Math.round((S.upd.done / S.upd.total) * 100) : 0;
@@ -695,7 +735,7 @@ function renderAbout() {
       <div class="about">
         ${upd}
         <div class="brand">${logoSvg(64)}<div><h1>NET PORTAL</h1><div class="dim">${esc(t('about.tagline'))}</div></div></div>
-        <div class="versions">${versions.map(([k, v]) => `<span>${esc(t(k))}</span><span class="mono selectable">${esc(v || '—')}</span>`).join('')}</div>
+        ${renderVersionCard(a)}
       </div>
     </section>`;
 }
@@ -1194,6 +1234,7 @@ function setSettings(patch) {
 }
 
 const ACTIONS = {
+  extipRetry: (el) => fetchExternalIP(el.dataset.name),
   nav: (el) => {
     if (S.screen === 'editor' && editorDirty()) { S.overlay = { kind: 'leave', then: el.dataset.screen }; render(); return; }
     S.editor = null;
@@ -1245,6 +1286,14 @@ const ACTIONS = {
   copyLog: () => copyText(filteredLog().map((l) => `${fmtTime(l.t)}  ${l.m}`).join('\r\n'), t('log.title')),
   saveLog: () => np.call('saveLog', { title: t('dlg.saveLog') }).then((r) => { if (r && !r.cancelled) toast('ok', t('toast.logSaved'), r.path); }).catch((e) => errorToast(t('log.save'), e)),
   theme: (el) => setSettings({ theme: el.dataset.value }),
+  checkUpdate: () => {
+    S.updCheck = { state: 'checking' }; render();
+    np.call('checkUpdate').then((r) => {
+      S.updCheck = r.found ? { state: 'found', version: r.version } : { state: 'latest' };
+      if (r.found) S.update = 'available';
+      render();
+    }).catch((e) => { S.updCheck = { state: 'failed', detail: errText(e) }; render(); });
+  },
   setting: (el) => setSettings({ [el.dataset.field]: !S.settings[el.dataset.field] }),
   autostart: () => {
     const on = !S.autostart;
@@ -1515,6 +1564,21 @@ np.on('tunnel', (ev) => {
   if (ev.name === S.selected || IS_TRAY) loadDetails();
   render();
 });
+np.on('health', (ev) => {
+  const prev = (S.health[ev.name] || {}).status;
+  if (ev.health) S.health[ev.name] = ev.health; else delete S.health[ev.name];
+  const cur = ev.health && ev.health.status;
+  if (!IS_TRAY && S.settings.notifications && cur !== prev) {
+    if (cur === 'down') toast('err', t('toast.healthLost', ev.name), t(S.settings.autoReconnect ? 'toast.healthLost.auto' : 'toast.healthLost.text'));
+    else if (cur === 'reconnecting') toast('info', t('toast.reconnecting', ev.name), '');
+    else if (cur === 'ok' && (prev === 'down' || prev === 'reconnecting')) toast('ok', t('toast.healthRestored', ev.name), '');
+  }
+  if (cur === prev && cur) {
+    const el = $(`[data-live="health"][data-name="${CSS.escape(ev.name)}"]`);
+    if (el) { el.innerHTML = healthInner(ev.name); return; }
+  }
+  render();
+});
 np.on('tunnels', () => refreshList());
 np.on('settings', (s) => { S.settings = s; LANG = s.language || 'ru'; applyTheme(); render(); });
 np.on('update', (u) => { S.update = u.state; render(); });
@@ -1542,6 +1606,7 @@ function start() {
     S.autostart = r.autostart; S.autostartKnown = r.autostartKnown;
     S.update = r.update; S.about = r.about;
     S.tunnels = r.tunnels || [];
+    S.health = r.health || {};
     // We do not know when tunnels that were already up started; the timer
     // starts from now for them.
     S.tunnels.forEach((x) => { if (x.state === 'started') S.since[x.name] = Date.now(); });
@@ -1563,6 +1628,7 @@ function start() {
     if (h.overlay === 'add') setTimeout(() => openMenu('add', 'add-btn', { qr: true }), 300);
     if (h.overlay === 'toasts') setTimeout(() => { toast('ok', t('toast.connected', 'ams-01'), t('toast.connected.ip', '203.0.113.24')); toast('info', t('toast.imported', plural(3, 'tunnels')), 'fra-home, tokyo-02, nyc-stream'); }, 300);
     if (h.toggle) setTimeout(() => toggleTunnel(h.toggle), 500);
+    if (h.check) setTimeout(() => ACTIONS.checkUpdate(), 300);
     if (h.scroll) setTimeout(() => { const d = $('.details'); if (d) d.scrollTop = +h.scroll; }, 400);
     applyTheme();
     loadDetails();

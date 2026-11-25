@@ -34,3 +34,4 @@ replace (
 
 replace github.com/amnezia-vpn/amneziawg-windows/v3 => ./third_party/amneziawg-windows
 replace github.com/amnezia-vpn/amneziawg-go/v3 => ./third_party/amneziawg-go
+replace github.com/jchv/go-webview2 => ./third_party/go-webview2

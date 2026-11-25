@@ -7,6 +7,7 @@ package webui
 
 import (
 	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
 	"sync"
@@ -159,7 +160,17 @@ func newWebWindow(o windowOptions) (*webWindow, error) {
 		}
 	}
 	if !w.chromium.Embed(uintptr(w.hwnd)) {
+		code := w.chromium.InitError()
+		delete(windowsByHwnd, w.hwnd)
+		if dispatchHwnd == w.hwnd {
+			dispatchMu.Lock()
+			dispatchHwnd = 0
+			dispatchMu.Unlock()
+		}
 		procDestroyWindow.Call(uintptr(w.hwnd))
+		if code != 0 {
+			return nil, fmt.Errorf("unable to start WebView2 (error 0x%08X). Please make sure the Microsoft Edge WebView2 Runtime is installed", code)
+		}
 		return nil, errors.New("unable to start WebView2. Please make sure the Microsoft Edge WebView2 Runtime is installed")
 	}
 	// go-webview2 reports any leftover GetLastError value as an error even

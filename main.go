@@ -174,15 +174,14 @@ func main() {
 		}
 		go webui.WaitForRaiseUIThenQuit()
 		err := manager.InstallManager()
-		if err != nil {
-			if err == manager.ErrManagerAlreadyRunning {
-				checkForAdminDesktop()
-			}
+		if err != nil && err != manager.ErrManagerAlreadyRunning {
 			fatal(err)
 		}
+		// Already running: its window may be (re)starting, e.g. after a
+		// crash the manager relaunches it, so wait for it to raise as well.
 		checkForAdminDesktop()
 		time.Sleep(30 * time.Second)
-                fatalf("AmneziaWG system tray icon did not appear after 30 seconds.")
+		fatalf("The NET PORTAL window did not appear after 30 seconds.")
 		return
 	case "/uninstallmanagerservice":
 		if len(os.Args) != 2 {

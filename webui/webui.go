@@ -51,6 +51,10 @@ type app struct {
 	updateState manager.UpdateState
 	quitManager bool
 	started     time.Time
+
+	monitors   map[string]*healthMonitor // connection checks, by tunnel
+	health     map[string]healthInfo
+	reconnects map[string]int // automatic reconnects in a row
 }
 
 // RunUI runs the interface for the manager service. It returns when the user
@@ -108,11 +112,13 @@ func run(be backend, demo, isAdmin bool) {
 		if err == nil {
 			break
 		}
-		if attempt >= 3 {
+		// Right after logon the manager starts us before WebView2 is ready
+		// to create controllers, so keep retrying for about half a minute.
+		if attempt >= 20 {
 			messageBox(0, appName, err.Error(), windows.MB_ICONERROR)
 			return
 		}
-		time.Sleep(400 * time.Millisecond)
+		time.Sleep(time.Duration(500+attempt*100) * time.Millisecond)
 	}
 	procChangeWindowMsgFilterEx.Call(uintptr(a.main.hwnd), uintptr(raiseMsg), 1 /* MSGFLT_ALLOW */, 0)
 	a.main.fit, a.main.wantW, a.main.wantH = true, demoSize(0, 1040), demoSize(1, 680)
@@ -158,6 +164,7 @@ func run(be backend, demo, isAdmin bool) {
 	}()
 	go a.refreshTray()
 	go a.autoConnect()
+	go a.syncHealth()
 
 	if s := a.settings.get(); s.ShowOnNextStart {
 		s.ShowOnNextStart = false
@@ -327,6 +334,7 @@ func (a *app) onTunnelChanged(name string, state, global manager.TunnelState, er
 	a.mu.Unlock()
 
 	a.emit("tunnel", map[string]any{"name": name, "state": stateString(state), "error": errText})
+	go a.syncHealth()
 	go a.refreshTray()
 
 	s := a.settings.get()
@@ -438,22 +446,28 @@ func (a *app) onUpdateProgress(dp updater.DownloadProgress) {
 // notifications); everything else is translated in the page.
 func trText(lang string) func(string) string {
 	ru := map[string]string{
-		"disconnected":    "отключено",
-		"connecting":      "подключение…",
-		"connected":       "подключено —",
-		"activated":       "Туннель %s подключён",
-		"deactivated":     "Туннель %s отключён",
-		"tunnelError":     "Ошибка туннеля",
-		"tunnelErrorBody": "%s: %s",
+		"disconnected":        "отключено",
+		"connecting":          "подключение…",
+		"connected":           "подключено —",
+		"activated":           "Туннель %s подключён",
+		"deactivated":         "Туннель %s отключён",
+		"tunnelError":         "Ошибка туннеля",
+		"tunnelErrorBody":     "%s: %s",
+		"health.lost":         "%s: нет связи с сервером",
+		"health.restored":     "%s: связь восстановлена",
+		"health.reconnecting": "%s: переподключаем…",
 	}
 	en := map[string]string{
-		"disconnected":    "disconnected",
-		"connecting":      "connecting…",
-		"connected":       "connected —",
-		"activated":       "Tunnel %s is connected",
-		"deactivated":     "Tunnel %s is disconnected",
-		"tunnelError":     "Tunnel error",
-		"tunnelErrorBody": "%s: %s",
+		"disconnected":        "disconnected",
+		"connecting":          "connecting…",
+		"connected":           "connected —",
+		"activated":           "Tunnel %s is connected",
+		"deactivated":         "Tunnel %s is disconnected",
+		"tunnelError":         "Tunnel error",
+		"tunnelErrorBody":     "%s: %s",
+		"health.lost":         "%s: no connection to the server",
+		"health.restored":     "%s: connection restored",
+		"health.reconnecting": "%s: reconnecting…",
 	}
 	m := ru
 	if lang == "en" {

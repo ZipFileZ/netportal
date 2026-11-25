@@ -49,8 +49,13 @@ func InstallManager() error {
 	// TODO: Do we want to bail if executable isn't being run from the right location?
 
 	serviceName := "NetPortalManager"
+	startType := uint32(mgr.StartAutomatic)
 	service, err := m.OpenService(serviceName)
 	if err == nil {
+		// Keep the user's "start with Windows" choice across the re-create.
+		if cfg, err := service.Config(); err == nil && cfg.StartType == mgr.StartManual {
+			startType = mgr.StartManual
+		}
 		status, err := service.Query()
 		if err != nil {
 			service.Close()
@@ -83,7 +88,7 @@ func InstallManager() error {
 
 	config := mgr.Config{
 		ServiceType:  windows.SERVICE_WIN32_OWN_PROCESS,
-		StartType:    mgr.StartAutomatic,
+		StartType:    startType,
 		ErrorControl: mgr.ErrorNormal,
 		DisplayName:  "NET PORTAL Manager",
 	}

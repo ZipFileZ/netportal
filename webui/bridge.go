@@ -28,6 +28,7 @@ import (
 
 	"github.com/amnezia-vpn/amneziawg-windows-client/manager"
 	"github.com/amnezia-vpn/amneziawg-windows-client/ringlogger"
+	"github.com/amnezia-vpn/amneziawg-windows-client/updater"
 	"github.com/amnezia-vpn/amneziawg-windows-client/version"
 	"github.com/amnezia-vpn/amneziawg-windows-client/webui/syntax"
 	"github.com/amnezia-vpn/amneziawg-windows/v3/conf"
@@ -95,6 +96,7 @@ func init() {
 		"setSettings":   {fn: (*app).rpcSetSettings},
 		"setAutostart":  {admin: true, fn: (*app).rpcSetAutostart},
 		"update":        {admin: true, fn: (*app).rpcUpdate},
+		"checkUpdate":   {fn: (*app).rpcCheckUpdate},
 		"externalIP":    {fn: (*app).rpcExternalIP},
 		"openURL":       {fn: (*app).rpcOpenURL},
 		"setChrome":     {ui: true, fn: (*app).rpcSetChrome},
@@ -185,6 +187,7 @@ func (a *app) rpcInit(w *webWindow, _ json.RawMessage) (any, error) {
 		"autostartKnown": autoErr == nil,
 		"update":         upd,
 		"tunnels":        tunnels,
+		"health":         a.healthSnapshot(),
 		"about": map[string]string{
 			"app":    version.Number,
 			"wintun": wintunVersion(),
@@ -1145,6 +1148,7 @@ func (a *app) rpcSetSettings(w *webWindow, raw json.RawMessage) (any, error) {
 		return nil, codeErr("settingsFailed", err)
 	}
 	a.emit("settings", a.settings.get())
+	go a.syncHealth()
 	go a.refreshTray()
 	return a.settings.get(), nil
 }
@@ -1179,11 +1183,18 @@ func (a *app) rpcExternalIP(w *webWindow, _ json.RawMessage) (any, error) {
 	if a.demo {
 		return ipInfo{IP: "203.0.113.24", City: "Amsterdam", Country: "Netherlands", Code: "NL"}, nil
 	}
-	info, err := externalIP(context.Background())
-	if err != nil {
-		return nil, codeErr("externalIPFailed", err)
+	// Right after a tunnel comes up (or another goes down) the first
+	// requests often fail while routes and DNS settle, so retry a few times.
+	var err error
+	for attempt, delay := range []time.Duration{0, 2 * time.Second, 4 * time.Second, 6 * time.Second} {
+		time.Sleep(delay)
+		var info ipInfo
+		if info, err = externalIP(context.Background()); err == nil {
+			return info, nil
+		}
+		log.Printf("External IP lookup failed (attempt %d): %v", attempt+1, err)
 	}
-	return info, nil
+	return nil, codeErr("externalIPFailed", err)
 }
 
 func (a *app) rpcOpenURL(w *webWindow, raw json.RawMessage) (any, error) {
@@ -1241,4 +1252,27 @@ func (a *app) rpcHidePopup(w *webWindow, _ json.RawMessage) (any, error) {
 func (a *app) rpcQuit(w *webWindow, _ json.RawMessage) (any, error) {
 	dispatch(func() { a.exit(true) })
 	return nil, nil
+}
+
+// checkUpdate asks GitHub for the latest release right away (the manager
+// otherwise checks about once an hour). Installing still goes through the
+// manager, which looks the release up again itself.
+func (a *app) rpcCheckUpdate(w *webWindow, _ json.RawMessage) (any, error) {
+	if a.demo {
+		time.Sleep(time.Second)
+		return map[string]any{"found": false, "current": version.Number}, nil
+	}
+	if !updater.Enabled() {
+		return nil, codeErr("updatesDisabled", nil)
+	}
+	up, err := updater.CheckForUpdate()
+	if err != nil {
+		log.Printf("Update check: %v", err)
+		return nil, codeErr("updateCheckFailed", err)
+	}
+	if up == nil {
+		return map[string]any{"found": false, "current": version.Number}, nil
+	}
+	a.onUpdateFound(manager.UpdateStateFoundUpdate)
+	return map[string]any{"found": true, "version": up.Version(), "current": version.Number}, nil
 }
